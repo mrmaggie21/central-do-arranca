@@ -756,6 +756,136 @@
                 });
                 html += '</div></div>';
             }
+            
+            // Vizinhos
+            if (data.vizinhos && data.vizinhos.length > 0) {
+                html += `
+                    <div class="data-section">
+                        <h4>👥 Vizinhos (${data.vizinhos.length})</h4>
+                        <div class="telefones-list">
+                `;
+                data.vizinhos.slice(0, 20).forEach(v => {
+                    html += `
+                        <div class="telefone-item">
+                            <div class="info">
+                                <div class="numero">${v.nome || 'N/A'}</div>
+                                <div class="details">
+                                    ${v.cpf ? `CPF: ${v.cpf}` : ''}
+                                    ${v.dataNascimento ? ` | Nascimento: ${v.dataNascimento}` : ''}
+                                    ${v.idade ? ` | Idade: ${v.idade}` : ''}
+                                    ${v.sexo ? ` | ${v.sexo}` : ''}
+                                    ${v.nomeMae ? ` | Mãe: ${v.nomeMae}` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
+            
+            // Compras ID
+            if (data.comprasId && data.comprasId.length > 0) {
+                html += `
+                    <div class="data-section">
+                        <h4>🛒 Compras Online (${data.comprasId.length})</h4>
+                        <div class="telefones-list">
+                `;
+                data.comprasId.forEach(c => {
+                    html += `
+                        <div class="telefone-item">
+                            <div class="info">
+                                <div class="numero">${c.produto || 'N/A'}</div>
+                                <div class="details">
+                                    ${c.detalhe ? `Detalhe: ${c.detalhe}` : ''}
+                                    ${c.quantidade ? ` | Qtd: ${c.quantidade}` : ''}
+                                    ${c.preco ? ` | Preço: R$ ${c.preco}` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
+            
+            // Perfil de Consumo
+            if (data.perfilConsumo && typeof data.perfilConsumo === 'object') {
+                html += `
+                    <div class="data-section">
+                        <h4>📊 Perfil de Consumo</h4>
+                `;
+                const perfil = data.perfilConsumo;
+                const keys = Object.keys(perfil);
+                keys.slice(0, 15).forEach(key => {
+                    const value = perfil[key];
+                    if (typeof value !== 'object' && value !== null) {
+                        html += `
+                            <div class="data-item">
+                                <span class="data-label">${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</span>
+                                <span class="data-value">${value === true ? 'Sim' : value === false ? 'Não' : value}</span>
+                            </div>
+                        `;
+                    }
+                });
+                html += '</div>';
+            }
+            
+            // Serasa Mosaic
+            if (data.serasaMosaic && data.serasaMosaic.classeMosaicNovo) {
+                html += `
+                    <div class="data-section">
+                        <h4>🏷️ Serasa Mosaic</h4>
+                `;
+                if (data.serasaMosaic.codigoMosaicNovo) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Código:</span>
+                            <span class="data-value">${data.serasaMosaic.codigoMosaicNovo}</span>
+                        </div>
+                    `;
+                }
+                if (data.serasaMosaic.classeMosaicNovo) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Classe:</span>
+                            <span class="data-value">${data.serasaMosaic.classeMosaicNovo}</span>
+                        </div>
+                    `;
+                }
+                if (data.serasaMosaic.descricaoMosaicNovo) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Descrição:</span>
+                            <span class="data-value">${data.serasaMosaic.descricaoMosaicNovo}</span>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+            
+            // Dados Adicionais (Óbito, Cônjuge, etc)
+            const dadosAdicionais = [];
+            if (data.obito && data.obito !== 'NÃO') dadosAdicionais.push({ label: 'Óbito', value: data.obito });
+            if (data.dataObito && data.dataObito !== 'Não consta.') dadosAdicionais.push({ label: 'Data Óbito', value: data.dataObito });
+            if (data.conjuge && Array.isArray(data.conjuge) && data.conjuge.length > 0) {
+                dadosAdicionais.push({ label: 'Cônjuge(s)', value: data.conjuge.length + ' encontrado(s)' });
+            }
+            if (data.pis) dadosAdicionais.push({ label: 'PIS', value: data.pis });
+            
+            if (dadosAdicionais.length > 0) {
+                html += `
+                    <div class="data-section">
+                        <h4>ℹ️ Informações Adicionais</h4>
+                `;
+                dadosAdicionais.forEach(item => {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">${item.label}:</span>
+                            <span class="data-value">${item.value}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
 
             resultContent.innerHTML = html || '<p style="text-align: center; color: #9ca3af; padding: 20px;">Nenhum dado disponível.</p>';
             resultContainer.classList.add('show');

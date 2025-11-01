@@ -224,7 +224,20 @@ class WorkBuscasChecker {
       parentes: [],
       beneficios: [],
       empresas: [],
-      empregos: []
+      empregos: [],
+      vizinhos: [],
+      comprasId: [],
+      perfilConsumo: null,
+      DadosImposto: [],
+      listaDocumentos: null,
+      servidor_siape: null,
+      flags: null,
+      foto: null,
+      obito: null,
+      dataObito: null,
+      conjuge: [],
+      pis: null,
+      serasaMosaic: null
     };
 
     // Telefones (pega todos os telefones disponíveis)
@@ -256,7 +269,7 @@ class WorkBuscasChecker {
       }
     }
 
-    // Dados Econômicos (Renda, Score, Poder Aquisitivo, Profissão)
+    // Dados Econômicos (Renda, Score, Poder Aquisitivo, Serasa Mosaic)
     if (data.DadosEconomicos) {
       if (data.DadosEconomicos.renda) {
         extracted.renda = data.DadosEconomicos.renda;
@@ -273,10 +286,20 @@ class WorkBuscasChecker {
       if (data.DadosEconomicos.poderAquisitivo) {
         extracted.poderAquisitivo = data.DadosEconomicos.poderAquisitivo.poderAquisitivoDescricao || null;
       }
-      if (data.DadosEconomicos.profissao) {
-        extracted.profissao = data.DadosEconomicos.profissao.cboDescricao || null;
-        extracted.cbo = data.DadosEconomicos.profissao.cbo || null;
+      if (data.DadosEconomicos.serasaMosaic) {
+        extracted.serasaMosaic = {
+          codigoMosaicNovo: data.DadosEconomicos.serasaMosaic.codigoMosaicNovo || null,
+          descricaoMosaicNovo: data.DadosEconomicos.serasaMosaic.descricaoMosaicNovo || null,
+          classeMosaicNovo: data.DadosEconomicos.serasaMosaic.classeMosaicNovo || null
+        };
       }
+    }
+    
+    // Profissão (está no nível raiz, NÃO dentro de DadosEconomicos!)
+    if (data.profissao) {
+      extracted.profissao = data.profissao.cboDescricao || null;
+      extracted.cbo = data.profissao.cbo || null;
+      extracted.pis = data.profissao.pis || null;
     }
 
     // Dados Básicos (Nome, Nome da Mãe, Data de Nascimento, etc)
@@ -316,6 +339,13 @@ class WorkBuscasChecker {
       }
       if (data.DadosBasicos.cns) {
         extracted.cns = data.DadosBasicos.cns;
+      }
+      if (data.DadosBasicos.obito) {
+        extracted.obito = data.DadosBasicos.obito.obito || null;
+        extracted.dataObito = data.DadosBasicos.obito.dataObito || null;
+      }
+      if (data.DadosBasicos.conjuge && Array.isArray(data.DadosBasicos.conjuge) && data.DadosBasicos.conjuge.length > 0) {
+        extracted.conjuge = data.DadosBasicos.conjuge;
       }
     }
     
