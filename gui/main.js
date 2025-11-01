@@ -123,10 +123,6 @@ app.whenReady().then(async () => {
   // Inicializa o updater
   const updater = new Updater();
   
-  // Verifica atualizações na splash screen
-  try {
-    console.log('[Updater] Iniciando verificação de atualizações...');
-    
   // Verifica se há atualização pendente para aplicar
   try {
     const updateApplied = await updater.checkAndApplyPendingUpdate();
@@ -144,14 +140,18 @@ app.whenReady().then(async () => {
     console.error('[Updater] Erro ao verificar atualização pendente:', error);
   }
 
-  // Garante que a splash está pronta
-  if (splashWindow && !splashWindow.isDestroyed()) {
-    // Mostra mensagem inicial
-    splashWindow.webContents.send('splash-log', '🔍 Verificando atualizações no GitHub...');
-    console.log('[Updater] Mensagem enviada para splash screen');
-  } else {
-    console.warn('[Updater] Splash window não está disponível');
-  }
+  // Verifica atualizações na splash screen
+  try {
+    console.log('[Updater] Iniciando verificação de atualizações...');
+    
+    // Garante que a splash está pronta
+    if (splashWindow && !splashWindow.isDestroyed()) {
+      // Mostra mensagem inicial
+      splashWindow.webContents.send('splash-log', '🔍 Verificando atualizações no GitHub...');
+      console.log('[Updater] Mensagem enviada para splash screen');
+    } else {
+      console.warn('[Updater] Splash window não está disponível');
+    }
     
     const updateInfo = await updater.checkForUpdates();
     console.log('[Updater] Resultado da verificação:', updateInfo);
