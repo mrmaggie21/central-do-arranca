@@ -1,6 +1,6 @@
 {
   "name": "central-do-arranca",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Central do Arranca - Checker automático de CPF",
   "main": "gui/main.js",
   "scripts": {

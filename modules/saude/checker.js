@@ -372,20 +372,54 @@ class SaudeChecker {
       const status = response.status;
       const responseData = response.data || {};
       
-      // Interpreta a resposta
-      // Se retornar 200 ou sucesso, pode ser que o CPF está cadastrado
-      // Se retornar erro específico, pode indicar CPF não cadastrado
+      // Log da resposta para debug
+      console.log(`[Saúde] Resposta da API - Status: ${status}, Data:`, JSON.stringify(responseData, null, 2));
+      
+      // Interpreta a resposta baseado no conteúdo
+      // Baseado no teste real:
+      // - Status 201 + msg "Foi enviado um email..." = CPF CADASTRADO
+      // - Status 202 + msg "não conferem" = CPF NÃO CADASTRADO ou dados errados
       let interpretation = 'unknown';
       
-      if (status === 200 || status === 201) {
-        // Sucesso pode indicar que reset foi solicitado ou que CPF existe
+      // Verifica primeiro pelo status
+      if (status === 201) {
+        // Status 201 (Created) = CPF cadastrado e reset de senha foi enviado
         interpretation = 'registered';
-      } else if (status === 400 || status === 404) {
-        // Erro pode indicar CPF não encontrado
+      } else if (status === 202) {
+        // Status 202 = geralmente indica que dados não conferem ou CPF não cadastrado
+        if (responseData.msg) {
+          const msg = responseData.msg.toLowerCase();
+          
+          // Se a mensagem indica que enviou email = cadastrado
+          if (msg.includes('enviado') && (msg.includes('email') || msg.includes('senha'))) {
+            interpretation = 'registered';
+          } else if (msg.includes('não conferem') || msg.includes('nao conferem')) {
+            // Dados não conferem = não cadastrado ou dados errados
+            interpretation = 'not_registered';
+          } else {
+            interpretation = 'not_registered';
+          }
+        } else {
+          interpretation = 'not_registered';
+        }
+      } else if (responseData.appuser && responseData.appuser !== null) {
+        // appuser preenchido = CPF cadastrado
+        interpretation = 'registered';
+      } else if (status === 400 || status === 404 || status === 422) {
         interpretation = 'not_registered';
-      } else if (status === 422) {
-        // Erro de validação pode indicar dados inválidos ou CPF não existe
-        interpretation = 'not_registered';
+      } else if (responseData.msg) {
+        // Verifica a mensagem
+        const msg = responseData.msg.toLowerCase();
+        
+        if (msg.includes('enviado') && (msg.includes('email') || msg.includes('senha'))) {
+          interpretation = 'registered';
+        } else if (msg.includes('não conferem') || msg.includes('nao conferem')) {
+          interpretation = 'not_registered';
+        } else if (msg.includes('encontrado') || msg.includes('não existe') || msg.includes('não cadastrado')) {
+          interpretation = 'not_registered';
+        } else {
+          interpretation = 'not_registered';
+        }
       } else {
         interpretation = 'error';
       }
