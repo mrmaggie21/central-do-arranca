@@ -35,6 +35,11 @@
     const status = document.getElementById('status');
     const logBox = document.getElementById('log');
     document.getElementById('ver').textContent = 'v' + (pkg.version || '1.1.0');
+    
+    // Log inicial
+    console.log('[Splash Renderer] Inicializando splash screen...');
+    addLine('Inicializando aplicativo...');
+    
     function addLine(text){
       const div=document.createElement('div');
       div.className='log-line';
@@ -42,6 +47,7 @@
       div.textContent = `[${ts}] ${text}`;
       logBox.appendChild(div);
       logBox.scrollTop = logBox.scrollHeight;
+      console.log('[Splash Renderer]', text);
     }
     ipcRenderer.on('splash-start', () => {
       status.textContent = 'Conectando à Webshare...';
@@ -57,6 +63,22 @@
     });
     ipcRenderer.on('splash-log', (e, message) => {
       addLine(message);
+    });
+    ipcRenderer.on('update-available', (e, data) => {
+      status.textContent = `Nova versão v${data.latestVersion} disponível!`;
+      fill.style.width = '15%';
+      addLine(`Nova versão: v${data.currentVersion} → v${data.latestVersion}`);
+    });
+    ipcRenderer.on('update-progress', (e, data) => {
+      const percent = data.percent || 0;
+      fill.style.width = Math.max(15, Math.min(90, 15 + (percent * 0.75))) + '%';
+      status.textContent = `Baixando atualização: ${percent}%`;
+    });
+    ipcRenderer.on('update-downloaded', (e, data) => {
+      fill.style.width = '100%';
+      status.textContent = 'Atualização baixada! Reinicie o aplicativo.';
+      addLine('✅ Atualização baixada com sucesso!');
+      addLine('⚠️ Reinicie o aplicativo para aplicar a atualização.');
     });
   </script>
 </body>

@@ -3,6 +3,7 @@ const path = require('path');
 const CPFGenerator = require('../cpf-generator');
 const GemeosChecker = require('../modules/gemeos/checker');
 const SaudeChecker = require('../modules/saude/checker');
+const Updater = require('../updater');
 const fs = require('fs-extra');
 
 let mainWindow;
@@ -70,9 +71,21 @@ function createSplash() {
     frame: false,
     alwaysOnTop: true,
     transparent: false,
+    show: true, // Mostra imediatamente
     webPreferences: { nodeIntegration: true, contextIsolation: false }
   });
   splashWindow.loadFile(path.join(__dirname, 'splash.html'));
+  
+  // Aguarda a splash estar pronta antes de verificar atualizações
+  return new Promise((resolve) => {
+    splashWindow.webContents.once('did-finish-load', () => {
+      console.log('[Splash] Splash screen carregada e pronta');
+      // Aguarda mais um pouco para garantir que o JS está rodando
+      setTimeout(() => {
+        resolve();
+      }, 300);
+    });
+  });
 }
 
 function createModuleSelector() {
@@ -102,7 +115,89 @@ function updateModuleSelectorStatus() {
 
 app.whenReady().then(async () => {
   // Splash: mostra logo e progresso de proxies
-  createSplash();
+  await createSplash();
+  
+  // Aguarda um pequeno delay para garantir que a splash está totalmente renderizada
+  await new Promise(resolve => setTimeout(resolve, 200));
+  
+  // Inicializa o updater
+  const updater = new Updater();
+  
+  // Verifica atualizações na splash screen
+  try {
+    console.log('[Updater] Iniciando verificação de atualizações...');
+    
+    // Garante que a splash está pronta
+    if (splashWindow && !splashWindow.isDestroyed()) {
+      // Mostra mensagem inicial
+      splashWindow.webContents.send('splash-log', '🔍 Verificando atualizações no GitHub...');
+      console.log('[Updater] Mensagem enviada para splash screen');
+    } else {
+      console.warn('[Updater] Splash window não está disponível');
+    }
+    
+    const updateInfo = await updater.checkForUpdates();
+    console.log('[Updater] Resultado da verificação:', updateInfo);
+    
+    if (updateInfo && updateInfo.available) {
+      console.log('[Updater] Nova versão disponível:', updateInfo.latestVersion);
+      if (splashWindow && !splashWindow.isDestroyed()) {
+        splashWindow.webContents.send('splash-log', `✨ Nova versão disponível: v${updateInfo.latestVersion}`);
+        splashWindow.webContents.send('splash-log', `📥 Baixando atualização...`);
+        splashWindow.webContents.send('update-available', {
+          currentVersion: updateInfo.currentVersion,
+          latestVersion: updateInfo.latestVersion,
+          releaseNotes: updateInfo.releaseNotes
+        });
+      }
+      
+      // Faz download da atualização se houver URL
+      if (updateInfo.downloadUrl) {
+        try {
+          const downloadProgress = (progress) => {
+            if (splashWindow && !splashWindow.isDestroyed()) {
+              const percent = progress.progress || 0;
+              splashWindow.webContents.send('update-progress', {
+                downloaded: progress.downloaded,
+                total: progress.total,
+                percent: percent
+              });
+              splashWindow.webContents.send('splash-log', `📥 Download: ${percent}%`);
+            }
+          };
+          
+          const zipPath = await updater.downloadUpdate(updateInfo.downloadUrl, downloadProgress);
+          
+          if (splashWindow && !splashWindow.isDestroyed()) {
+            splashWindow.webContents.send('splash-log', '✅ Download concluído!');
+            splashWindow.webContents.send('splash-log', '⚠️ Reinicie o aplicativo para aplicar a atualização.');
+            splashWindow.webContents.send('update-downloaded', { zipPath });
+          }
+        } catch (error) {
+          console.error('[Updater] Erro ao baixar atualização:', error);
+          if (splashWindow && !splashWindow.isDestroyed()) {
+            splashWindow.webContents.send('splash-log', '❌ Erro ao baixar atualização. Continuando...');
+          }
+        }
+      }
+    } else {
+      // Sem atualização disponível
+      const versionMessage = updateInfo?.error 
+        ? `⚠️ Não foi possível verificar atualizações (${updateInfo.error}). Continuando...`
+        : `✅ Você está com a versão mais recente (v${updateInfo?.currentVersion || updater.currentVersion})`;
+      
+      if (splashWindow && !splashWindow.isDestroyed()) {
+        splashWindow.webContents.send('splash-log', versionMessage);
+        console.log('[Updater]', versionMessage);
+      }
+    }
+  } catch (error) {
+    console.error('[Updater] Erro ao verificar atualizações:', error);
+    if (splashWindow && !splashWindow.isDestroyed()) {
+      splashWindow.webContents.send('splash-log', `⚠️ Erro ao verificar atualizações: ${error.message}`);
+      console.log('[Updater] Mensagem de erro enviada para splash');
+    }
+  }
   
   // Inicializa checkers para ambos os módulos
   checkers['gemeos'] = new GemeosChecker({
