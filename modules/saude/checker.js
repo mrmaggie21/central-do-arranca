@@ -274,7 +274,7 @@ class SaudeChecker {
   }
 
   /**
-   * Consulta WorkBuscas para obter email e telefone
+   * Consulta WorkBuscas para obter emails e telefones
    */
   async consultWorkBuscas(cpf) {
     try {
@@ -283,27 +283,49 @@ class SaudeChecker {
       if (result.success && result.interpretation === 'found' && result.data) {
         const data = result.data;
         
-        // Pega primeiro email disponível
-        const email = data.email || (data.emails && data.emails.length > 0 ? data.emails[0].email : null);
+        // Extrai TODOS os emails disponíveis
+        const emails = [];
+        if (data.email) {
+          emails.push(data.email);
+        }
+        if (data.emails && Array.isArray(data.emails) && data.emails.length > 0) {
+          data.emails.forEach(e => {
+            if (e.email && !emails.includes(e.email)) {
+              emails.push(e.email);
+            }
+          });
+        }
         
-        // Pega primeiro telefone disponível e formata
-        let phone = null;
-        if (data.telefones && data.telefones.length > 0) {
-          phone = this.formatPhone(data.telefones[0].numero);
-        } else if (data.telefone) {
-          phone = this.formatPhone(data.telefone);
+        // Extrai TODOS os telefones disponíveis e formata
+        const phones = [];
+        if (data.telefones && Array.isArray(data.telefones) && data.telefones.length > 0) {
+          data.telefones.forEach(t => {
+            if (t.telefone || t.numero) {
+              const phone = this.formatPhone(t.telefone || t.numero);
+              if (phone && !phones.includes(phone)) {
+                phones.push(phone);
+              }
+            }
+          });
+        }
+        if (data.telefone && !phones.includes(this.formatPhone(data.telefone))) {
+          phones.push(this.formatPhone(data.telefone));
         }
         
         return {
           success: true,
-          email: email,
-          phone: phone,
+          emails: emails,
+          phones: phones,
+          email: emails.length > 0 ? emails[0] : null, // Mantém primeiro para compatibilidade
+          phone: phones.length > 0 ? phones[0] : null, // Mantém primeiro para compatibilidade
           workbuscasData: data
         };
       }
       
       return {
         success: false,
+        emails: [],
+        phones: [],
         email: null,
         phone: null,
         workbuscasData: null
@@ -312,6 +334,8 @@ class SaudeChecker {
       console.error('[Saúde] Erro ao consultar WorkBuscas:', error.message);
       return {
         success: false,
+        emails: [],
+        phones: [],
         email: null,
         phone: null,
         workbuscasData: null
@@ -475,20 +499,20 @@ class SaudeChecker {
         };
       }
       
-      // Consulta WorkBuscas para obter email e telefone
+      // Consulta WorkBuscas para obter emails e telefones
       console.log(`[Saúde] Consultando WorkBuscas para CPF ${cpf}...`);
       const workbuscasResult = await this.consultWorkBuscas(cpf);
       
-      let email = workbuscasResult.email;
-      let phonenumber = workbuscasResult.phone;
+      const emails = workbuscasResult.emails || [];
+      const phones = workbuscasResult.phones || [];
       
-      // Se não encontrou email OU telefone no WorkBuscas, não testa na API do Saúde Diária
-      if (!email && !phonenumber) {
-        console.log(`[Saúde] Email e telefone não encontrados no WorkBuscas - CPF ${cpf} não será testado`);
+      // Se não encontrou email E telefone no WorkBuscas, não testa na API do Saúde Diária
+      if (emails.length === 0 && phones.length === 0) {
+        console.log(`[Saúde] Emails e telefones não encontrados no WorkBuscas - CPF ${cpf} não será testado`);
         return {
           cpf: cpf,
           success: false,
-          error: 'Dados insuficientes (email e telefone não encontrados no WorkBuscas)',
+          error: 'Dados insuficientes (emails e telefones não encontrados no WorkBuscas)',
           status: 0,
           interpretation: 'skipped',
           proxy: 'N/A',
@@ -498,105 +522,129 @@ class SaudeChecker {
         };
       }
       
-      // Se não encontrou email, mas encontrou telefone, usa email padrão
-      if (!email) {
-        console.log(`[Saúde] Email não encontrado no WorkBuscas, usando padrão`);
-        email = 'email@exemplo.com';
+      // Se não tem emails, usa um padrão
+      if (emails.length === 0) {
+        emails.push('email@exemplo.com');
       }
       
-      // Se não encontrou telefone, mas encontrou email, usa telefone padrão
-      if (!phonenumber) {
-        console.log(`[Saúde] Telefone não encontrado no WorkBuscas, usando padrão`);
-        phonenumber = '+5511999999999';
+      // Se não tem telefones, usa um padrão
+      if (phones.length === 0) {
+        phones.push('+5511999999999');
       }
       
-      console.log(`[Saúde] Dados obtidos - Email: ${email}, Phone: ${phonenumber}`);
+      console.log(`[Saúde] Encontrados ${emails.length} email(s) e ${phones.length} telefone(s) no WorkBuscas`);
+      console.log(`[Saúde] Emails: ${emails.join(', ')}`);
+      console.log(`[Saúde] Telefones: ${phones.join(', ')}`);
       
-      // Obtém proxy aleatório
-      let proxy = null;
-      let usedProxy = 'Sem Proxy';
-      let firstProxy = null; // Mantém a primeira proxy tentada para registro
-      
-      if (this.proxies.length > 0) {
-        proxy = this.getRandomProxy();
-        firstProxy = proxy;
-        usedProxy = proxy ? `${proxy.host}:${proxy.port}` : 'Sem Proxy';
-        console.log(`[Saúde] Usando proxy: ${usedProxy}`);
-      } else {
-        console.log(`[Saúde] Nenhum proxy disponível, fazendo requisição direta`);
+      // FORÇA uso de proxy - não permite requisição sem proxy se houver proxies disponíveis
+      if (this.proxies.length === 0) {
+        console.log(`[Saúde] ⚠️ Nenhum proxy disponível - não será possível testar`);
+        return {
+          cpf: cpf,
+          success: false,
+          error: 'Nenhum proxy disponível',
+          status: 0,
+          interpretation: 'error',
+          proxy: 'N/A',
+          workbuscas: workbuscasResult.workbuscasData,
+          workbuscasSuccess: workbuscasResult.success,
+          timestamp: new Date().toISOString()
+        };
       }
       
-      // Faz requisição à API Saúde Diária (com retry e fallback sem proxy)
-      console.log(`[Saúde] Fazendo requisição à API Saúde Diária...`);
-      let result = null;
-      let retryCount = 0;
-      const maxRetries = 2;
+      // Testa com TODOS os emails encontrados
+      let finalResult = null;
+      let usedProxy = 'N/A';
       
-      while (retryCount <= maxRetries) {
-        try {
-          result = await this.makeAPIRequest(cpf, email, phonenumber, proxy);
-          
-          // Se sucesso, para o loop
-          if (result.success || result.interpretation !== 'error') {
-            // Usa a proxy que foi realmente usada (ou primeira tentada se foi bem-sucedida)
-            if (proxy && result.proxy === 'Sem Proxy') {
-              result.proxy = `${proxy.host}:${proxy.port}`;
+      for (const email of emails) {
+        // Usa primeiro telefone para este email (ou todos se quiser testar todas combinações)
+        const phonenumber = phones[0];
+        
+        // Obtém proxy aleatório para cada tentativa
+        let proxy = this.getRandomProxy();
+        let firstProxy = proxy;
+        usedProxy = proxy ? `${proxy.host}:${proxy.port}` : 'N/A';
+        console.log(`[Saúde] Testando com email: ${email}, telefone: ${phonenumber}, proxy: ${usedProxy}`);
+        
+        // Faz requisição à API Saúde Diária com retry e rotação de proxy (SEM FALLBACK SEM PROXY)
+        let result = null;
+        let retryCount = 0;
+        const maxRetries = 3; // Mais tentativas já que não vamos usar fallback sem proxy
+        
+        while (retryCount <= maxRetries && this.proxies.length > 0) {
+          try {
+            result = await this.makeAPIRequest(cpf, email, phonenumber, proxy);
+            
+            // Se sucesso ou encontrou cadastrado, para de testar outros emails
+            if (result.success || result.interpretation === 'registered') {
+              if (proxy && result.proxy === 'Sem Proxy') {
+                result.proxy = `${proxy.host}:${proxy.port}`;
+              }
+              usedProxy = result.proxy;
+              finalResult = result;
+              console.log(`[Saúde] ✅ Sucesso com email ${email} - Status: ${result.interpretation}`);
+              break; // Para de testar outros emails
             }
+            
+            // Se erro de rede/timeout, tenta com outro proxy (NÃO tenta sem proxy)
+            if (result.error && (result.error.includes('timeout') || result.error.includes('ECONNREFUSED') || result.error.includes('network'))) {
+              retryCount++;
+              if (retryCount <= maxRetries && this.proxies.length > 0) {
+                // Tenta com outro proxy
+                proxy = this.getRandomProxy();
+                console.log(`[Saúde] Retentando com novo proxy: ${proxy ? `${proxy.host}:${proxy.port}` : 'N/A'} (tentativa ${retryCount}/${maxRetries})`);
+                await this.sleep(500);
+                continue;
+              }
+            }
+            
+            // Se não foi erro de rede, também para (pode ser que não esteja cadastrado com este email)
             break;
-          }
-          
-          // Se erro de rede/timeout, tenta com outro proxy ou sem proxy
-          if (result.error && (result.error.includes('timeout') || result.error.includes('ECONNREFUSED') || result.error.includes('network'))) {
+          } catch (error) {
             retryCount++;
             if (retryCount <= maxRetries && this.proxies.length > 0) {
               // Tenta com outro proxy
               proxy = this.getRandomProxy();
-              console.log(`[Saúde] Retentando com novo proxy: ${proxy ? `${proxy.host}:${proxy.port}` : 'Sem Proxy'} (tentativa ${retryCount}/${maxRetries})`);
-              await this.sleep(500);
-              continue;
-            } else if (retryCount === maxRetries && proxy) {
-              // Última tentativa sem proxy, mas mantém a primeira proxy no registro
-              console.log(`[Saúde] Última tentativa sem proxy`);
-              proxy = null;
+              console.log(`[Saúde] Erro ao testar, tentando novo proxy: ${proxy ? `${proxy.host}:${proxy.port}` : 'N/A'} (tentativa ${retryCount}/${maxRetries})`);
               await this.sleep(500);
               continue;
             }
+            // Se esgotou tentativas, continua para próximo email
+            break;
           }
-          
+        }
+        
+        // Se encontrou cadastrado, para de testar outros emails
+        if (finalResult && finalResult.interpretation === 'registered') {
           break;
-        } catch (error) {
-          retryCount++;
-          if (retryCount <= maxRetries && proxy) {
-            // Tenta sem proxy na última tentativa
-            if (retryCount === maxRetries) {
-              console.log(`[Saúde] Erro persistente, tentando sem proxy`);
-              proxy = null;
-              await this.sleep(500);
-              continue;
-            }
-          }
-          throw error;
+        }
+        
+        // Se não teve sucesso, continua para próximo email
+        if (!finalResult || finalResult.interpretation !== 'registered') {
+          finalResult = result; // Guarda último resultado (pode ser not_registered ou error)
+          continue; // Testa próximo email
         }
       }
       
-      // Se ainda não tem resultado, faz sem proxy
-      if (!result) {
-        result = await this.makeAPIRequest(cpf, email, phonenumber, null);
+      // Se testou todos os emails mas não encontrou cadastrado, usa último resultado
+      if (!finalResult) {
+        finalResult = {
+          cpf: cpf,
+          success: false,
+          error: 'Todos os emails foram testados sem sucesso',
+          status: 0,
+          interpretation: 'not_registered',
+          proxy: usedProxy,
+          timestamp: new Date().toISOString()
+        };
       }
       
-      // Atualiza proxy no resultado - usa primeira proxy tentada ou a que foi usada
-      if (firstProxy && result.proxy === 'Sem Proxy') {
-        // Se primeira proxy foi tentada mas resultado diz "Sem Proxy", usa a primeira
-        result.proxy = `${firstProxy.host}:${firstProxy.port}`;
-        usedProxy = result.proxy;
-      } else if (result.proxy && result.proxy !== 'Sem Proxy') {
-        // Mantém o proxy que veio do resultado
-        usedProxy = result.proxy;
-      } else {
-        // Se realmente não usou proxy, mantém "Sem Proxy"
-        result.proxy = 'Sem Proxy';
-        usedProxy = 'Sem Proxy';
+      // Atualiza proxy no resultado
+      if (finalResult.proxy === 'Sem Proxy' || finalResult.proxy === 'N/A') {
+        finalResult.proxy = usedProxy;
       }
+      
+      const result = finalResult;
       
       // Atualiza contadores
       if (result.success) {
@@ -614,6 +662,18 @@ class SaudeChecker {
       // Adiciona dados do WorkBuscas ao resultado
       result.workbuscas = workbuscasResult.workbuscasData;
       result.workbuscasSuccess = workbuscasResult.success;
+      
+      // Garante que sempre tem proxy no resultado (não pode ser "Sem Proxy" ou "N/A")
+      if (!result.proxy || result.proxy === 'Sem Proxy' || result.proxy === 'N/A') {
+        if (this.proxies.length > 0) {
+          // Se tinha proxy disponível mas não foi usado, isso é um erro
+          console.log(`[Saúde] ⚠️ ATENÇÃO: Proxy não foi usado mas estava disponível!`);
+          const randomProxy = this.getRandomProxy();
+          result.proxy = randomProxy ? `${randomProxy.host}:${randomProxy.port}` : 'N/A';
+        } else {
+          result.proxy = 'N/A';
+        }
+      }
       
       return result;
       
