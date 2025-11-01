@@ -448,12 +448,29 @@ class SaudeChecker {
       let email = workbuscasResult.email;
       let phonenumber = workbuscasResult.phone;
       
-      // Se não encontrou email ou telefone no WorkBuscas, usa valores padrão
+      // Se não encontrou email OU telefone no WorkBuscas, não testa na API do Saúde Diária
+      if (!email && !phonenumber) {
+        console.log(`[Saúde] Email e telefone não encontrados no WorkBuscas - CPF ${cpf} não será testado`);
+        return {
+          cpf: cpf,
+          success: false,
+          error: 'Dados insuficientes (email e telefone não encontrados no WorkBuscas)',
+          status: 0,
+          interpretation: 'skipped',
+          proxy: 'N/A',
+          workbuscas: null,
+          workbuscasSuccess: false,
+          timestamp: new Date().toISOString()
+        };
+      }
+      
+      // Se não encontrou email, mas encontrou telefone, usa email padrão
       if (!email) {
         console.log(`[Saúde] Email não encontrado no WorkBuscas, usando padrão`);
         email = 'email@exemplo.com';
       }
       
+      // Se não encontrou telefone, mas encontrou email, usa telefone padrão
       if (!phonenumber) {
         console.log(`[Saúde] Telefone não encontrado no WorkBuscas, usando padrão`);
         phonenumber = '+5511999999999';
