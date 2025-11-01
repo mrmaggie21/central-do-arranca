@@ -101,9 +101,25 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
             padding: 30px;
-            max-height: 600px;
+            max-height: calc(100vh - 350px);
+            min-height: 400px;
             overflow-y: auto;
+            overflow-x: hidden;
             display: none;
+        }
+        .result-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .result-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        .result-container::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.5);
+            border-radius: 4px;
+        }
+        .result-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.7);
         }
         .result-container.show {
             display: block;
@@ -503,8 +519,8 @@
                 html += '</div></div>';
             }
 
-            // Dados Econômicos
-            if (data.renda || data.score) {
+            // Dados Econômicos (completo)
+            if (data.renda || data.score || data.scoreCSBA || data.poderAquisitivo || data.profissao) {
                 html += `
                     <div class="data-section">
                         <h4>💰 Dados Econômicos</h4>
@@ -517,11 +533,43 @@
                         </div>
                     `;
                 }
+                if (data.poderAquisitivo) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Poder Aquisitivo:</span>
+                            <span class="data-value">${data.poderAquisitivo}</span>
+                        </div>
+                    `;
+                }
                 if (data.score) {
                     html += `
                         <div class="data-item">
                             <span class="data-label">Score CSB:</span>
                             <span class="data-value">${data.score}</span>
+                        </div>
+                    `;
+                }
+                if (data.scoreCSBA) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Score CSBA:</span>
+                            <span class="data-value">${data.scoreCSBA}</span>
+                        </div>
+                    `;
+                }
+                if (data.scoreCSBFaixaRisco) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Faixa de Risco:</span>
+                            <span class="data-value">${data.scoreCSBFaixaRisco}</span>
+                        </div>
+                    `;
+                }
+                if (data.profissao) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Profissão:</span>
+                            <span class="data-value">${data.profissao}${data.cbo ? ` (CBO: ${data.cbo})` : ''}</span>
                         </div>
                     `;
                 }
@@ -564,9 +612,147 @@
                 }
                 html += '</div>';
             }
+            
+            // Dados Pessoais Adicionais
+            const dadosExtras = [];
+            if (data.sexo) dadosExtras.push({ label: 'Sexo', value: data.sexo });
+            if (data.cor) dadosExtras.push({ label: 'Cor', value: data.cor });
+            if (data.municipioNascimento) dadosExtras.push({ label: 'Município de Nascimento', value: data.municipioNascimento });
+            if (data.escolaridade) dadosExtras.push({ label: 'Escolaridade', value: data.escolaridade });
+            if (data.estadoCivil) dadosExtras.push({ label: 'Estado Civil', value: data.estadoCivil });
+            if (data.nacionalidade) dadosExtras.push({ label: 'Nacionalidade', value: data.nacionalidade });
+            if (data.situacaoCadastral) dadosExtras.push({ label: 'Situação Cadastral', value: data.situacaoCadastral });
+            if (data.cns) dadosExtras.push({ label: 'CNS', value: data.cns });
+            if (data.nomePai) dadosExtras.push({ label: 'Nome do Pai', value: data.nomePai });
+            
+            if (dadosExtras.length > 0) {
+                html += `
+                    <div class="data-section">
+                        <h4>ℹ️ Informações Adicionais</h4>
+                `;
+                dadosExtras.forEach(item => {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">${item.label}:</span>
+                            <span class="data-value">${item.value}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            // Endereços
+            if (data.enderecos && data.enderecos.length > 0) {
+                html += `
+                    <div class="data-section">
+                        <h4>🏠 Endereços (${data.enderecos.length})</h4>
+                        <div class="telefones-list">
+                `;
+                data.enderecos.forEach((end, idx) => {
+                    html += `
+                        <div class="telefone-item">
+                            <div class="info">
+                                <div class="numero">${idx + 1}. ${end.logradouro || 'N/A'}${end.numero ? `, ${end.numero}` : ''}</div>
+                                <div class="details">
+                                    ${end.complemento ? `${end.complemento}` : ''}
+                                    ${end.bairro ? ` | ${end.bairro}` : ''}
+                                    ${end.cidade ? ` | ${end.cidade}` : ''}
+                                    ${end.uf ? ` - ${end.uf}` : ''}
+                                    ${end.cep ? ` | CEP: ${end.cep}` : ''}
+                                    ${end.sus ? ' | SUS' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
+            
+            // Título Eleitor
+            if (data.tituloEleitor && data.tituloEleitor.numero) {
+                html += `
+                    <div class="data-section">
+                        <h4>🗳️ Título Eleitor</h4>
+                        <div class="data-item">
+                            <span class="data-label">Número:</span>
+                            <span class="data-value">${data.tituloEleitor.numero}</span>
+                        </div>
+                `;
+                if (data.tituloEleitor.zona) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Zona:</span>
+                            <span class="data-value">${data.tituloEleitor.zona}</span>
+                        </div>
+                    `;
+                }
+                if (data.tituloEleitor.secao) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Seção:</span>
+                            <span class="data-value">${data.tituloEleitor.secao}</span>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+            
+            // Parentes
+            if (data.parentes && data.parentes.length > 0) {
+                html += `
+                    <div class="data-section">
+                        <h4>👨‍👩‍👧‍👦 Parentes (${data.parentes.length})</h4>
+                        <div class="telefones-list">
+                `;
+                data.parentes.forEach(p => {
+                    html += `
+                        <div class="telefone-item">
+                            <div class="info">
+                                <div class="numero">${p.nome || 'N/A'}</div>
+                                <div class="details">
+                                    ${p.cpf ? `CPF: ${p.cpf}` : ''}
+                                    ${p.dataNascimento ? ` | Nascimento: ${p.dataNascimento}` : ''}
+                                    ${p.idade ? ` | Idade: ${p.idade}` : ''}
+                                    ${p.sexo ? ` | ${p.sexo}` : ''}
+                                    ${p.nomeMae ? ` | Mãe: ${p.nomeMae}` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
+            
+            // Benefícios
+            if (data.beneficios && data.beneficios.length > 0) {
+                html += `
+                    <div class="data-section">
+                        <h4>💰 Benefícios</h4>
+                        <div class="telefones-list">
+                `;
+                data.beneficios.forEach(b => {
+                    html += `
+                        <div class="telefone-item">
+                            <div class="info">
+                                <div class="numero">${b.beneficio || 'N/A'}</div>
+                                <div class="details">
+                                    ${b.totalParcelasRecebidas ? `Parcelas: ${b.totalParcelasRecebidas}` : ''}
+                                    ${b.totalRecebido ? ` | Total: ${b.totalRecebido}` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
 
             resultContent.innerHTML = html || '<p style="text-align: center; color: #9ca3af; padding: 20px;">Nenhum dado disponível.</p>';
             resultContainer.classList.add('show');
+            
+            // Scroll automático para o topo dos resultados
+            setTimeout(() => {
+                resultContainer.scrollTop = 0;
+            }, 100);
         }
 
         function showError(message) {

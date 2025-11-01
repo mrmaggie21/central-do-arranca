@@ -196,15 +196,35 @@ class WorkBuscasChecker {
       telefones: [], // Array com todos os telefones
       email: null,
       emails: [],
+      enderecos: [],
       renda: null,
       score: null,
+      scoreCSBA: null,
+      scoreCSBFaixaRisco: null,
+      poderAquisitivo: null,
+      profissao: null,
+      cbo: null,
       nomeMae: null,
+      nomePai: null,
       dataNascimento: null,
+      sexo: null,
+      cor: null,
+      municipioNascimento: null,
+      escolaridade: null,
+      estadoCivil: null,
+      nacionalidade: null,
+      situacaoCadastral: null,
       nome: null,
       rg: null,
       rgDataEmissao: null,
       rgOrgaoEmissor: null,
-      rgUfEmissao: null
+      rgUfEmissao: null,
+      cns: null,
+      tituloEleitor: null,
+      parentes: [],
+      beneficios: [],
+      empresas: [],
+      empregos: []
     };
 
     // Telefones (pega todos os telefones disponíveis)
@@ -236,7 +256,7 @@ class WorkBuscasChecker {
       }
     }
 
-    // Dados Econômicos (Renda e Score)
+    // Dados Econômicos (Renda, Score, Poder Aquisitivo, Profissão)
     if (data.DadosEconomicos) {
       if (data.DadosEconomicos.renda) {
         extracted.renda = data.DadosEconomicos.renda;
@@ -244,9 +264,22 @@ class WorkBuscasChecker {
       if (data.DadosEconomicos.score?.scoreCSB) {
         extracted.score = data.DadosEconomicos.score.scoreCSB;
       }
+      if (data.DadosEconomicos.score?.scoreCSBA) {
+        extracted.scoreCSBA = data.DadosEconomicos.score.scoreCSBA;
+      }
+      if (data.DadosEconomicos.score?.scoreCSBFaixaRisco) {
+        extracted.scoreCSBFaixaRisco = data.DadosEconomicos.score.scoreCSBFaixaRisco;
+      }
+      if (data.DadosEconomicos.poderAquisitivo) {
+        extracted.poderAquisitivo = data.DadosEconomicos.poderAquisitivo.poderAquisitivoDescricao || null;
+      }
+      if (data.DadosEconomicos.profissao) {
+        extracted.profissao = data.DadosEconomicos.profissao.cboDescricao || null;
+        extracted.cbo = data.DadosEconomicos.profissao.cbo || null;
+      }
     }
 
-    // Dados Básicos (Nome, Nome da Mãe, Data de Nascimento)
+    // Dados Básicos (Nome, Nome da Mãe, Data de Nascimento, etc)
     if (data.DadosBasicos) {
       if (data.DadosBasicos.nome) {
         extracted.nome = data.DadosBasicos.nome;
@@ -254,8 +287,35 @@ class WorkBuscasChecker {
       if (data.DadosBasicos.nomeMae) {
         extracted.nomeMae = data.DadosBasicos.nomeMae;
       }
+      if (data.DadosBasicos.nomePai) {
+        extracted.nomePai = data.DadosBasicos.nomePai;
+      }
       if (data.DadosBasicos.dataNascimento) {
         extracted.dataNascimento = data.DadosBasicos.dataNascimento;
+      }
+      if (data.DadosBasicos.sexo) {
+        extracted.sexo = data.DadosBasicos.sexo;
+      }
+      if (data.DadosBasicos.cor) {
+        extracted.cor = data.DadosBasicos.cor;
+      }
+      if (data.DadosBasicos.municipioNascimento) {
+        extracted.municipioNascimento = data.DadosBasicos.municipioNascimento;
+      }
+      if (data.DadosBasicos.escolaridade) {
+        extracted.escolaridade = data.DadosBasicos.escolaridade;
+      }
+      if (data.DadosBasicos.estadoCivil) {
+        extracted.estadoCivil = data.DadosBasicos.estadoCivil;
+      }
+      if (data.DadosBasicos.nacionalidade) {
+        extracted.nacionalidade = data.DadosBasicos.nacionalidade;
+      }
+      if (data.DadosBasicos.situacaoCadastral) {
+        extracted.situacaoCadastral = data.DadosBasicos.situacaoCadastral.descricaoSituacaoCadastral || null;
+      }
+      if (data.DadosBasicos.cns) {
+        extracted.cns = data.DadosBasicos.cns;
       }
     }
     
@@ -301,6 +361,62 @@ class WorkBuscasChecker {
     }
     if (!extracted.rgUfEmissao && data.rgUfEmissao) {
       extracted.rgUfEmissao = data.rgUfEmissao;
+    }
+    
+    // Endereços (todos os endereços disponíveis)
+    if (data.enderecos && Array.isArray(data.enderecos) && data.enderecos.length > 0) {
+      extracted.enderecos = data.enderecos.map(e => ({
+        tipoLogradouro: e.tipoLogradouro || null,
+        logradouro: e.logradouro || null,
+        numero: e.logradouroNumero || null,
+        complemento: e.complemento || null,
+        bairro: e.bairro || null,
+        cidade: e.cidade || null,
+        uf: e.uf || null,
+        cep: e.cep || null,
+        sus: e.sus || false
+      })).filter(e => e.logradouro !== null);
+    }
+    
+    // Título Eleitor
+    if (data.tituloEleitor && data.tituloEleitor.tituloEleitorNumero) {
+      extracted.tituloEleitor = {
+        numero: data.tituloEleitor.tituloEleitorNumero,
+        zona: data.tituloEleitor.zonaTitulo,
+        secao: data.tituloEleitor.secaoTitulo
+      };
+    }
+    
+    // Parentes
+    if (data.parentes && Array.isArray(data.parentes) && data.parentes.length > 0) {
+      extracted.parentes = data.parentes.map(p => ({
+        nome: p.nome || null,
+        cpf: p.cpf || null,
+        dataNascimento: p.dataNascimento || null,
+        idade: p.idade || null,
+        sexo: p.sexo || null,
+        nomeMae: p.nomeMae || null
+      })).filter(p => p.nome !== null);
+    }
+    
+    // Benefícios
+    if (data.beneficios && Array.isArray(data.beneficios) && data.beneficios.length > 0) {
+      extracted.beneficios = data.beneficios.map(b => ({
+        tipo: b.tipo || null,
+        beneficio: b.beneficio || null,
+        totalParcelasRecebidas: b.totalParcelasRecebidas || 0,
+        totalRecebido: b.totalRecebido || null
+      })).filter(b => b.beneficio !== null);
+    }
+    
+    // Empresas
+    if (data.empresas && Array.isArray(data.empresas) && data.empresas.length > 0) {
+      extracted.empresas = data.empresas;
+    }
+    
+    // Empregos
+    if (data.empregos && Array.isArray(data.empregos) && data.empregos.length > 0) {
+      extracted.empregos = data.empregos;
     }
     
     // Verifica se pelo menos algum dado foi extraído
