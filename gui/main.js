@@ -182,9 +182,17 @@ app.whenReady().then(async () => {
       }
     } else {
       // Sem atualização disponível
-      const versionMessage = updateInfo?.error 
-        ? `⚠️ Não foi possível verificar atualizações (${updateInfo.error}). Continuando...`
-        : `✅ Você está com a versão mais recente (v${updateInfo?.currentVersion || updater.currentVersion})`;
+      let versionMessage;
+      if (updateInfo?.error === 'Nenhuma release encontrada') {
+        // Primeira execução - ainda não há releases no GitHub
+        versionMessage = `✅ Versão atual: v${updater.currentVersion}`;
+      } else if (updateInfo?.error) {
+        // Erro real ao verificar
+        versionMessage = `⚠️ Não foi possível verificar atualizações (${updateInfo.error}). Continuando...`;
+      } else {
+        // Está atualizado
+        versionMessage = `✅ Você está com a versão mais recente (v${updateInfo?.currentVersion || updater.currentVersion})`;
+      }
       
       if (splashWindow && !splashWindow.isDestroyed()) {
         splashWindow.webContents.send('splash-log', versionMessage);
