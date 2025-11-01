@@ -201,7 +201,7 @@ ipcRenderer.on('proxy-info', (event, data) => {
 ipcRenderer.on('cpf-checking', (event, data) => {
     // Atualiza tabela com status intermediário
     if (data.statusText) {
-      updateCPFTable(data.cpf, data.status || 'checking', 'Sistema', new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }), data.statusText);
+      updateCPFTable(data.cpf, data.status || 'checking', data.proxy || 'Sistema', new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }), data.statusText);
     }
 });
 

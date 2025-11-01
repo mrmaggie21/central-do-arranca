@@ -233,6 +233,16 @@ class SaudeChecker {
       
       this.proxies = allProxies.slice(0, 1000);
       
+      // Testa proxies antes de salvar no cache (igual ao Gemeos)
+      const validProxies = await this.testProxies(this.proxies, progressCallback);
+      
+      if (validProxies.length === 0) {
+        console.log('⚠️ [Saúde] Nenhum proxy válido encontrado, usando todos os proxies');
+        this.proxies = this.proxies.slice(0, 1000);
+      } else {
+        this.proxies = validProxies.slice(0, 1000);
+      }
+      
       // Salva no cache
       await this.saveToCache(this.proxies);
       
@@ -273,11 +283,92 @@ class SaudeChecker {
   }
 
   /**
+   * Testa um proxy específico na API WorkBuscas
+   */
+  async testProxy(proxy) {
+    try {
+      // Testa no endpoint WorkBuscas com CPF inválido para validar JSON esperado
+      const testConfig = {
+        method: 'get',
+        url: `${this.workbuscasChecker.workbuscasUrl}?token=${this.workbuscasChecker.workbuscasToken}&modulo=cpf&consulta=00000000000`,
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': this.getRandomUserAgent(),
+          'accept': 'application/json',
+        },
+        timeout: 7000,
+        ...this.getSSLConfig(),
+        validateStatus: function (status) { return status >= 200 && status < 500; }
+      };
+      
+      if (HttpsProxyAgent) {
+        const authPart = proxy.username && proxy.password
+          ? `${encodeURIComponent(proxy.username)}:${encodeURIComponent(proxy.password)}@`
+          : '';
+        const proxyUrl = `http://${authPart}${proxy.proxy_address}:${proxy.port}`;
+        testConfig.proxy = false;
+        testConfig.httpsAgent = new HttpsProxyAgent.HttpsProxyAgent(proxyUrl);
+      } else {
+        testConfig.proxy = {
+          host: proxy.proxy_address,
+          port: proxy.port,
+          auth: proxy.username && proxy.password ? {
+            username: proxy.username,
+            password: proxy.password
+          } : undefined,
+          protocol: 'http'
+        };
+      }
+      
+      const response = await axios(testConfig);
+      const data = response.data;
+      const isObj = typeof data === 'object' && data !== null;
+      // WorkBuscas retorna objeto mesmo quando não encontra (com mensagens de erro)
+      return isObj;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Testa múltiplos proxies em paralelo
+   */
+  async testProxies(proxies, progressCallback) {
+    console.log(`🧪 [Saúde] Testando ${proxies.length} proxies...`);
+    
+    const batchSize = 10;
+    const validProxies = [];
+    
+    for (let i = 0; i < proxies.length; i += batchSize) {
+      const batch = proxies.slice(i, i + batchSize);
+      
+      const promises = batch.map(async (proxy) => {
+        const isValid = await this.testProxy(proxy);
+        return isValid ? proxy : null;
+      });
+      
+      const batchResults = await Promise.all(promises);
+      const validBatch = batchResults.filter(proxy => proxy !== null);
+      validProxies.push(...validBatch);
+      
+      if (progressCallback) {
+        progressCallback(validProxies.length);
+      }
+      
+      // Pequena pausa entre lotes
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    console.log(`✅ [Saúde] ${validProxies.length}/${proxies.length} proxies válidos encontrados`);
+    return validProxies;
+  }
+
+  /**
    * Consulta WorkBuscas para obter emails e telefones
    */
-  async consultWorkBuscas(cpf) {
+  async consultWorkBuscas(cpf, proxy = null) {
     try {
-      const result = await this.workbuscasChecker.makeAPIRequest(cpf);
+      const result = await this.workbuscasChecker.makeAPIRequest(cpf, proxy);
       
       if (result.success && result.interpretation === 'found' && result.data) {
         const data = result.data;
@@ -500,9 +591,16 @@ class SaudeChecker {
         };
       }
       
-      // Consulta WorkBuscas para obter emails e telefones
+      // Consulta WorkBuscas para obter emails e telefones (com proxy)
       if (statusCallback) statusCallback('buscando_email', cpf);
-      const workbuscasResult = await this.consultWorkBuscas(cpf);
+      
+      // Obtém proxy para WorkBuscas
+      let workbuscasProxy = null;
+      if (this.proxies.length > 0) {
+        workbuscasProxy = this.getRandomProxy();
+      }
+      
+      const workbuscasResult = await this.consultWorkBuscas(cpf, workbuscasProxy);
       
       const emails = workbuscasResult.emails || [];
       const phones = workbuscasResult.phones || [];

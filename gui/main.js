@@ -890,10 +890,20 @@ async function startContinuousChecking(config) {
             statusText = '⏳ Processando...';
         }
         
+        // Obtém proxy atual se disponível
+        let proxyInfo = 'Sistema';
+        if (checker.proxies.length > 0) {
+          const randomProxy = checker.getRandomProxy();
+          if (randomProxy) {
+            proxyInfo = `${randomProxy.host}:${randomProxy.port}`;
+          }
+        }
+        
         currentModuleWindow.webContents.send('cpf-checking', {
           cpf: cpf,
           status: statusType,
-          statusText: statusText
+          statusText: statusText,
+          proxy: proxyInfo
         });
       }
     };

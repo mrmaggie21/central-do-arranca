@@ -61,7 +61,7 @@ class WorkBuscasChecker {
   /**
    * Faz requisição à API WorkBuscas
    */
-  async makeAPIRequest(cpf) {
+  async makeAPIRequest(cpf, proxy = null) {
     try {
       // Remove formatação do CPF (apenas números)
       const cpfClean = cpf.replace(/\D/g, '');
@@ -82,6 +82,35 @@ class WorkBuscasChecker {
           return status >= 200 && status < 500;
         }
       };
+
+      // Adiciona proxy se fornecido
+      if (proxy) {
+        let HttpsProxyAgent;
+        try {
+          HttpsProxyAgent = require('https-proxy-agent');
+        } catch (_) {
+          HttpsProxyAgent = null;
+        }
+        
+        if (HttpsProxyAgent) {
+          const authPart = proxy.username && proxy.password
+            ? `${encodeURIComponent(proxy.username)}:${encodeURIComponent(proxy.password)}@`
+            : '';
+          const proxyUrl = `http://${authPart}${proxy.proxy_address}:${proxy.port}`;
+          axiosConfig.proxy = false;
+          axiosConfig.httpsAgent = new HttpsProxyAgent.HttpsProxyAgent(proxyUrl);
+        } else {
+          axiosConfig.proxy = {
+            host: proxy.proxy_address,
+            port: proxy.port,
+            auth: proxy.username && proxy.password ? {
+              username: proxy.username,
+              password: proxy.password
+            } : undefined,
+            protocol: 'http'
+          };
+        }
+      }
 
       const response = await axios(axiosConfig);
       
