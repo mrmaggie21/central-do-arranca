@@ -220,7 +220,6 @@ class SaudeChecker {
         if (proxies.length === 0) break;
         
         allProxies.push(...proxies);
-        console.log(`📡 [Saúde] Carregados ${proxies.length} proxies da página ${page} (Total: ${allProxies.length})`);
         
         if (progressCallback) {
           progressCallback(allProxies.length);
@@ -396,8 +395,10 @@ class SaudeChecker {
       const status = response.status;
       const responseData = response.data || {};
       
-      // Log da resposta para debug
-      console.log(`[Saúde] Resposta da API - Status: ${status}, Data:`, JSON.stringify(responseData, null, 2));
+      // Log apenas se encontrar cadastrado ou erro
+      if (status === 201) {
+        console.log(`[Saúde] ✅ CPF ${cpf} CADASTRADO - Status: ${status}`);
+      }
       
       // Interpreta a resposta baseado no conteúdo
       // Baseado no teste real:
@@ -482,7 +483,6 @@ class SaudeChecker {
       // Se CPF não foi fornecido, gera um válido
       if (!cpf) {
         cpf = this.generateValidCPF();
-        console.log(`[Saúde] CPF gerado: ${cpf}`);
       }
       
       // Remove formatação do CPF
@@ -500,7 +500,6 @@ class SaudeChecker {
       }
       
       // Consulta WorkBuscas para obter emails e telefones
-      console.log(`[Saúde] Consultando WorkBuscas para CPF ${cpf}...`);
       const workbuscasResult = await this.consultWorkBuscas(cpf);
       
       const emails = workbuscasResult.emails || [];
@@ -508,7 +507,6 @@ class SaudeChecker {
       
       // Se não encontrou email E telefone no WorkBuscas, não testa na API do Saúde Diária
       if (emails.length === 0 && phones.length === 0) {
-        console.log(`[Saúde] Emails e telefones não encontrados no WorkBuscas - CPF ${cpf} não será testado`);
         return {
           cpf: cpf,
           success: false,
@@ -532,13 +530,8 @@ class SaudeChecker {
         phones.push('+5511999999999');
       }
       
-      console.log(`[Saúde] Encontrados ${emails.length} email(s) e ${phones.length} telefone(s) no WorkBuscas`);
-      console.log(`[Saúde] Emails: ${emails.join(', ')}`);
-      console.log(`[Saúde] Telefones: ${phones.join(', ')}`);
-      
       // FORÇA uso de proxy - não permite requisição sem proxy se houver proxies disponíveis
       if (this.proxies.length === 0) {
-        console.log(`[Saúde] ⚠️ Nenhum proxy disponível - não será possível testar`);
         return {
           cpf: cpf,
           success: false,
@@ -564,7 +557,6 @@ class SaudeChecker {
         let proxy = this.getRandomProxy();
         let firstProxy = proxy;
         usedProxy = proxy ? `${proxy.host}:${proxy.port}` : 'N/A';
-        console.log(`[Saúde] Testando com email: ${email}, telefone: ${phonenumber}, proxy: ${usedProxy}`);
         
         // Faz requisição à API Saúde Diária com retry e rotação de proxy (SEM FALLBACK SEM PROXY)
         let result = null;
@@ -582,7 +574,9 @@ class SaudeChecker {
               }
               usedProxy = result.proxy;
               finalResult = result;
-              console.log(`[Saúde] ✅ Sucesso com email ${email} - Status: ${result.interpretation}`);
+              if (result.interpretation === 'registered') {
+                console.log(`[Saúde] ✅ CPF ${cpf} CADASTRADO com email ${email}`);
+              }
               break; // Para de testar outros emails
             }
             
@@ -592,7 +586,6 @@ class SaudeChecker {
               if (retryCount <= maxRetries && this.proxies.length > 0) {
                 // Tenta com outro proxy
                 proxy = this.getRandomProxy();
-                console.log(`[Saúde] Retentando com novo proxy: ${proxy ? `${proxy.host}:${proxy.port}` : 'N/A'} (tentativa ${retryCount}/${maxRetries})`);
                 await this.sleep(500);
                 continue;
               }
@@ -605,7 +598,6 @@ class SaudeChecker {
             if (retryCount <= maxRetries && this.proxies.length > 0) {
               // Tenta com outro proxy
               proxy = this.getRandomProxy();
-              console.log(`[Saúde] Erro ao testar, tentando novo proxy: ${proxy ? `${proxy.host}:${proxy.port}` : 'N/A'} (tentativa ${retryCount}/${maxRetries})`);
               await this.sleep(500);
               continue;
             }
@@ -667,7 +659,6 @@ class SaudeChecker {
       if (!result.proxy || result.proxy === 'Sem Proxy' || result.proxy === 'N/A') {
         if (this.proxies.length > 0) {
           // Se tinha proxy disponível mas não foi usado, isso é um erro
-          console.log(`[Saúde] ⚠️ ATENÇÃO: Proxy não foi usado mas estava disponível!`);
           const randomProxy = this.getRandomProxy();
           result.proxy = randomProxy ? `${randomProxy.host}:${randomProxy.port}` : 'N/A';
         } else {
@@ -699,7 +690,6 @@ class SaudeChecker {
     
     // Se não forneceu CPFs, gera automaticamente
     if (!cpfs || cpfs.length === 0) {
-      console.log('[Saúde] Gerando CPFs válidos automaticamente...');
       cpfs = [];
       for (let i = 0; i < this.batchSize; i++) {
         cpfs.push(this.generateValidCPF());
@@ -767,7 +757,6 @@ class SaudeChecker {
     }
     
     await fs.writeFile(filePath, content, 'utf8');
-    console.log(`💾 [Saúde] Resultados salvos em: ${filePath}`);
     
     return filePath;
   }
