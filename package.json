@@ -1,6 +1,6 @@
 {
   "name": "central-do-arranca",
-  "version": "1.4.8",
+  "version": "1.4.9",
   "description": "Central do Arranca - Checker automático de CPF",
   "main": "gui/main.js",
   "scripts": {
@@ -37,7 +37,8 @@
   },
   "devDependencies": {
     "electron": "^27.0.0",
-    "electron-packager": "^17.1.1"
+    "electron-packager": "^17.1.1",
+    "puppeteer": "^24.27.0"
   },
   "engines": {
     "node": ">=14.0.0"

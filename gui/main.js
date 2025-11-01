@@ -118,7 +118,16 @@ function createModuleSelector() {
 
 function updateModuleSelectorStatus() {
   if (moduleSelectorWindow && !moduleSelectorWindow.isDestroyed()) {
-    moduleSelectorWindow.webContents.send('update-modules-status', activeModules);
+    // Cria versão serializável do activeModules (remove referências de BrowserWindow)
+    const serializableStatus = {};
+    for (const [moduleName, moduleData] of Object.entries(activeModules)) {
+      serializableStatus[moduleName] = {
+        isRunning: moduleData.isRunning || false,
+        isChecking: moduleData.isChecking || false,
+        // Não inclui 'window' pois não pode ser serializado
+      };
+    }
+    moduleSelectorWindow.webContents.send('update-modules-status', serializableStatus);
   }
 }
 
@@ -361,7 +370,16 @@ ipcMain.on('module-selected', async (event, moduleName) => {
 
 // Handler para verificar status dos módulos
 ipcMain.handle('get-modules-status', () => {
-  return activeModules;
+  // Retorna versão serializável (sem referências de BrowserWindow)
+  const serializableStatus = {};
+  for (const [moduleName, moduleData] of Object.entries(activeModules)) {
+    serializableStatus[moduleName] = {
+      isRunning: moduleData.isRunning || false,
+      isChecking: moduleData.isChecking || false,
+      // Não inclui 'window' pois não pode ser serializado
+    };
+  }
+  return serializableStatus;
 });
 
 ipcMain.on('back-to-menu', (event) => {
@@ -394,9 +412,7 @@ ipcMain.on('back-to-menu', (event) => {
   
   // Atualiza o status dos módulos no menu após um pequeno delay
   setTimeout(() => {
-    if (moduleSelectorWindow && !moduleSelectorWindow.isDestroyed()) {
-      moduleSelectorWindow.webContents.send('update-modules-status', activeModules);
-    }
+    updateModuleSelectorStatus();
   }, 100);
 });
 

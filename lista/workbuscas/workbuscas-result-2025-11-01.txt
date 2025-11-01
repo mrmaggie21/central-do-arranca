@@ -1,0 +1,34 @@
+═══════════════════════════════════════════════════════════
+CENTRAL DO ARRANCA - WORKBUSCAS CHECKER - RESULTADOS
+═══════════════════════════════════════════════════════════
+
+Data/Hora: 01/11/2025, 15:50:26
+Total verificados: 1
+CPFs encontrados: 1
+CPFs não encontrados: 0
+Erros: 0
+
+═══════════════════════════════════════════════════════════
+
+
+[1] CPF: 074.115.064-60
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Nome: ANAILTON FERNANDES DA SILVA
+
+📞 TELEFONES (5):
+   1. 82988383437 (Não informado)
+   2. 82999331988 (Não informado)
+   3. 82988383374 (Não informado)
+   4. 82988213961 (Não informado)
+   5. 82988987514 (Não informado)
+
+📧 EMAILS (1):
+   1. fatsales@uol.com.br
+
+📅 Data de Nascimento: 20/07/1990
+👤 Nome da Mãe: ANA CELIA SUPRIANO DA SILVA
+💰 Renda: 284,93
+📊 Score CSB: 258
+
+Timestamp: 2025-11-01T18:50:26.691Z
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
