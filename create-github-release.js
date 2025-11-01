@@ -57,9 +57,7 @@ async function createRelease() {
     name: RELEASE_TITLE,
     body: `## Central do Arranca v${VERSION}
 
-### 🎉 Primeira Release
-
-Esta é a primeira release oficial do Central do Arranca!
+### 🚀 Release ${VERSION}
 
 ### ✨ Funcionalidades
 
@@ -71,13 +69,14 @@ Esta é a primeira release oficial do Central do Arranca!
 
 ### 📝 Notas
 
-- Sistema de atualização automática configurado
+- Sistema de atualização automática funcional
 - Build completo para Windows x64
 - Todas as dependências incluídas
+- Melhorias na mensagem de atualização
 
 ### 📦 Download
 
-Anexe o arquivo ZIP nesta release para distribuição.`,
+Arquivo ZIP incluído para distribuição.`,
     draft: false,
     prerelease: false
   });
