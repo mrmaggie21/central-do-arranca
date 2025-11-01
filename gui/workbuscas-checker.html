@@ -388,8 +388,8 @@
 
             // Envia requisição
             try {
-                const result = await ipcRenderer.invoke('test-single-cpf', formattedCPF);
-                handleResult(result, formattedCPF);
+                const response = await ipcRenderer.invoke('test-single-cpf', formattedCPF);
+                handleResult(response, formattedCPF);
             } catch (error) {
                 showError('Erro ao consultar CPF: ' + error.message);
             } finally {
@@ -398,13 +398,22 @@
             }
         });
 
-        function handleResult(result, cpf) {
-            if (!result.success) {
-                showError(result.error || 'Erro ao consultar CPF');
+        function handleResult(response, cpf) {
+            // O handler retorna { success: true, result: {...} }
+            if (!response || !response.success) {
+                showError(response?.error || 'Erro ao consultar CPF');
                 return;
             }
 
+            // Extrai o resultado real
+            const result = response.result || response;
+            
+            console.log('[WorkBuscas HTML] Result recebido:', JSON.stringify(result, null, 2));
+            console.log('[WorkBuscas HTML] interpretation:', result.interpretation);
+            console.log('[WorkBuscas HTML] has data:', !!result.data);
+            
             if (result.interpretation === 'not_found' || !result.data) {
+                console.log('[WorkBuscas HTML] Mostrando como não encontrado');
                 resultStatus.textContent = 'Não encontrado';
                 resultStatus.className = 'result-status not-found';
                 resultContent.innerHTML = '<p style="text-align: center; color: #9ca3af; padding: 20px;">CPF não encontrado na base de dados.</p>';
@@ -413,6 +422,7 @@
             }
 
             // CPF encontrado - mostra dados
+            console.log('[WorkBuscas HTML] Mostrando dados encontrados');
             resultStatus.textContent = 'Encontrado';
             resultStatus.className = 'result-status found';
 
