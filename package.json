@@ -1,0 +1,47 @@
+{
+  "name": "gemeos-cpf-checker",
+  "version": "1.0.0",
+  "description": "Checker automático de CPF para a API da Gemeos Brasil",
+  "main": "gui/main.js",
+  "scripts": {
+    "start": "node continuous.js",
+    "single": "node index.js",
+    "gui": "electron gui/main.js",
+    "test": "node test.js",
+    "test-proxy": "node test-proxy.js",
+    "test-gui": "node test-gui.js",
+    "demo": "node demo.js",
+    "pack": "electron-packager . \"Gemeos CPF Checker\" --platform=win32 --arch=x64 --out=dist --overwrite --ignore=dist --ignore=.git --ignore=BUILD-EXE.md --ignore=PROJECT-SUMMARY.md --ignore=README.md --ignore=executar.bat --ignore=validado-*.txt --no-asar --prune=false"
+  },
+  "keywords": [
+    "cpf",
+    "checker",
+    "gemeos",
+    "brasil",
+    "api",
+    "electron",
+    "gui"
+  ],
+  "author": "Mr.Robot",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "chalk": "^4.1.2",
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-packager": "^17.1.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mrrobot/gemeos-checker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mrrobot/gemeos-checker/issues"
+  },
+  "homepage": "https://github.com/mrrobot/gemeos-checker#readme"
+}
