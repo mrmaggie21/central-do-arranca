@@ -63,7 +63,11 @@ class WorkBuscasChecker {
    */
   async makeAPIRequest(cpf) {
     try {
-      const url = `${this.workbuscasUrl}?token=${this.workbuscasToken}&modulo=cpf&consulta=${cpf}`;
+      // Remove formatação do CPF (apenas números)
+      const cpfClean = cpf.replace(/\D/g, '');
+      const url = `${this.workbuscasUrl}?token=${this.workbuscasToken}&modulo=cpf&consulta=${cpfClean}`;
+      
+      console.log('[WorkBuscas] URL da requisição:', url);
       
       const axiosConfig = {
         method: 'get',
@@ -97,9 +101,9 @@ class WorkBuscasChecker {
       // Log para debug
       console.log('[WorkBuscas] Resposta da API para CPF', cpf, ':', JSON.stringify(data, null, 2));
       
-      // Verifica se a resposta é válida (não vazia e não é erro)
-      if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
-        console.log('[WorkBuscas] Resposta vazia ou inválida para CPF', cpf);
+      // Verifica se a resposta é válida
+      if (!data || typeof data !== 'object') {
+        console.log('[WorkBuscas] Resposta inválida para CPF', cpf);
         this.notFoundCount++;
         return {
           cpf: cpf,
@@ -111,49 +115,32 @@ class WorkBuscasChecker {
         };
       }
       
-      // Verifica se há dados válidos
-      const hasData = this.hasValidData(data);
-      console.log('[WorkBuscas] CPF', cpf, '- hasData:', hasData);
+      // Extrai todos os dados disponíveis (sempre tenta extrair)
+      const extractedData = this.extractData(data);
       
-      if (!hasData) {
-        // Tenta extrair dados mesmo assim, pode ter estrutura diferente
-        const extractedData = this.extractData(data);
-        const hasExtractedData = Object.values(extractedData).some(v => {
-          if (Array.isArray(v)) return v.length > 0;
-          return v !== null && v !== undefined && v !== '';
-        });
-        
-        console.log('[WorkBuscas] CPF', cpf, '- hasExtractedData:', hasExtractedData);
-        console.log('[WorkBuscas] Extracted data:', JSON.stringify(extractedData, null, 2));
-        
-        if (!hasExtractedData) {
-          this.notFoundCount++;
-          return {
-            cpf: cpf,
-            success: true,
-            status: 200,
-            interpretation: 'not_found',
-            message: 'CPF não encontrado na base de dados',
-            timestamp: new Date().toISOString()
-          };
-        }
-        
-        // Tem dados extraídos, então encontrou
-        this.foundCount++;
+      // Verifica se extraiu algum dado válido
+      const hasExtractedData = extractedData && Object.values(extractedData).some(v => {
+        if (Array.isArray(v)) return v.length > 0;
+        return v !== null && v !== undefined && v !== '';
+      });
+      
+      console.log('[WorkBuscas] CPF', cpf, '- Dados extraídos:', JSON.stringify(extractedData, null, 2));
+      console.log('[WorkBuscas] CPF', cpf, '- hasExtractedData:', hasExtractedData);
+      
+      if (!hasExtractedData) {
+        console.log('[WorkBuscas] CPF', cpf, '- Nenhum dado válido extraído');
+        this.notFoundCount++;
         return {
           cpf: cpf,
           success: true,
           status: 200,
-          interpretation: 'found',
-          data: extractedData,
+          interpretation: 'not_found',
+          message: 'CPF não encontrado na base de dados',
           timestamp: new Date().toISOString()
         };
       }
-
-      // Extrai todos os dados disponíveis
-      const extractedData = this.extractData(data);
-      console.log('[WorkBuscas] CPF', cpf, '- Dados extraídos:', JSON.stringify(extractedData, null, 2));
       
+      // Tem dados extraídos, então encontrou
       this.foundCount++;
       return {
         cpf: cpf,
@@ -322,7 +309,7 @@ class WorkBuscasChecker {
       return v !== null && v !== undefined && v !== '';
     });
 
-    return hasAnyData ? extracted : null;
+    return extracted; // Sempre retorna o objeto, mesmo se vazio
   }
 
   /**
