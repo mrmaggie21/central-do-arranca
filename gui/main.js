@@ -654,13 +654,20 @@ ipcMain.handle('test-single-cpf', async (event, cpf) => {
         }
         
         // Retorna resultado formatado para WorkBuscas
+        const resultData = result.data || {};
+        
+        // Adiciona o CPF nos dados para facilitar exibição
+        if (!resultData.cpf && result.cpf) {
+          resultData.cpf = result.cpf;
+        }
+        
         return {
           success: true,
           result: {
             cpf: result.cpf,
             success: result.success,
             interpretation: result.interpretation,
-            data: result.data || null,
+            data: resultData,
             message: result.interpretation === 'found' ? 'CPF encontrado' : 'CPF não encontrado',
             timestamp: result.timestamp
           }

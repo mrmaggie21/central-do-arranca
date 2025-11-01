@@ -456,16 +456,28 @@
             const data = result.data;
             let html = '';
 
-            // Nome
-            if (data.nome) {
+            // Dados Pessoais (completo)
+            if (data.nome || data.dataNascimento || data.nomeMae || data.nomePai || data.sexo || data.cor || data.cpf) {
                 html += `
                     <div class="data-section">
                         <h4>👤 Dados Pessoais</h4>
+                `;
+                if (data.cpf) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">CPF:</span>
+                            <span class="data-value">${data.cpf}</span>
+                        </div>
+                    `;
+                }
+                if (data.nome) {
+                    html += `
                         <div class="data-item">
                             <span class="data-label">Nome:</span>
                             <span class="data-value">${data.nome}</span>
                         </div>
-                `;
+                    `;
+                }
                 if (data.dataNascimento) {
                     html += `
                         <div class="data-item">
@@ -474,11 +486,83 @@
                         </div>
                     `;
                 }
+                if (data.sexo) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Sexo:</span>
+                            <span class="data-value">${data.sexo}</span>
+                        </div>
+                    `;
+                }
+                if (data.cor) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Cor:</span>
+                            <span class="data-value">${data.cor}</span>
+                        </div>
+                    `;
+                }
                 if (data.nomeMae) {
                     html += `
                         <div class="data-item">
                             <span class="data-label">Nome da Mãe:</span>
                             <span class="data-value">${data.nomeMae}</span>
+                        </div>
+                    `;
+                }
+                if (data.nomePai) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Nome do Pai:</span>
+                            <span class="data-value">${data.nomePai}</span>
+                        </div>
+                    `;
+                }
+                if (data.municipioNascimento) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Município de Nascimento:</span>
+                            <span class="data-value">${data.municipioNascimento}</span>
+                        </div>
+                    `;
+                }
+                if (data.escolaridade) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Escolaridade:</span>
+                            <span class="data-value">${data.escolaridade}</span>
+                        </div>
+                    `;
+                }
+                if (data.estadoCivil) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Estado Civil:</span>
+                            <span class="data-value">${data.estadoCivil}</span>
+                        </div>
+                    `;
+                }
+                if (data.nacionalidade) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Nacionalidade:</span>
+                            <span class="data-value">${data.nacionalidade}</span>
+                        </div>
+                    `;
+                }
+                if (data.situacaoCadastral) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Situação Cadastral:</span>
+                            <span class="data-value">${data.situacaoCadastral}</span>
+                        </div>
+                    `;
+                }
+                if (data.cns) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">CNS:</span>
+                            <span class="data-value">${data.cns}</span>
                         </div>
                     `;
                 }
