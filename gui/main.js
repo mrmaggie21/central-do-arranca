@@ -633,8 +633,13 @@ ipcMain.handle('test-single-cpf', async (event, cpf) => {
     
     // WorkBuscas tem formato diferente
     if (moduleName === 'workbuscas') {
+      console.log('[WorkBuscas] Resultado completo:', JSON.stringify(result, null, 2));
+      
       if (result.success) {
         const status = result.interpretation === 'found' ? 'found' : 'not_found';
+        
+        console.log('[WorkBuscas] Status:', status);
+        console.log('[WorkBuscas] Has data:', !!result.data);
         
         // Salva se encontrou dados
         if (status === 'found' && result.data) {
@@ -661,6 +666,7 @@ ipcMain.handle('test-single-cpf', async (event, cpf) => {
           }
         };
       } else {
+        console.log('[WorkBuscas] Erro ao consultar:', result.error);
         return {
           success: false,
           error: result.error || 'Erro ao consultar CPF',
