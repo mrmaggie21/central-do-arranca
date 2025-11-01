@@ -187,7 +187,14 @@ class Updater {
 
       req.on('error', (error) => {
         file.close();
-        fs.unlinkSync(zipPath).catch(() => {});
+        try {
+          if (fs.existsSync(zipPath)) {
+            fs.unlinkSync(zipPath);
+          }
+        } catch (unlinkError) {
+          // Ignora erro ao deletar arquivo
+          console.warn('[Updater] Erro ao deletar arquivo parcial:', unlinkError.message);
+        }
         reject(error);
       });
 
