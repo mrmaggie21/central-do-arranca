@@ -477,8 +477,9 @@ class SaudeChecker {
   /**
    * Verifica um único CPF na API Saúde Diária
    * Lógica: Gera CPF → Consulta WorkBuscas → Preenche payload → Testa API
+   * @param {Function} statusCallback - Callback para atualizar status em tempo real
    */
-  async checkCPF(cpf = null, showProxyInfo = false) {
+  async checkCPF(cpf = null, showProxyInfo = false, statusCallback = null) {
     try {
       // Se CPF não foi fornecido, gera um válido
       if (!cpf) {
@@ -500,6 +501,7 @@ class SaudeChecker {
       }
       
       // Consulta WorkBuscas para obter emails e telefones
+      if (statusCallback) statusCallback('buscando_email', cpf);
       const workbuscasResult = await this.consultWorkBuscas(cpf);
       
       const emails = workbuscasResult.emails || [];
@@ -507,6 +509,7 @@ class SaudeChecker {
       
       // Se não encontrou email E telefone no WorkBuscas, não testa na API do Saúde Diária
       if (emails.length === 0 && phones.length === 0) {
+        if (statusCallback) statusCallback('dados_insuficientes', cpf);
         return {
           cpf: cpf,
           success: false,
@@ -549,9 +552,19 @@ class SaudeChecker {
       let finalResult = null;
       let usedProxy = 'N/A';
       
-      for (const email of emails) {
+      for (let emailIndex = 0; emailIndex < emails.length; emailIndex++) {
+        const email = emails[emailIndex];
         // Usa primeiro telefone para este email (ou todos se quiser testar todas combinações)
         const phonenumber = phones[0];
+        
+        // Status: testando com email X de Y
+        if (statusCallback) {
+          if (emails.length > 1) {
+            statusCallback('testando_email', cpf, `${emailIndex + 1}/${emails.length}`);
+          } else {
+            statusCallback('testando', cpf);
+          }
+        }
         
         // Obtém proxy aleatório para cada tentativa
         let proxy = this.getRandomProxy();
@@ -565,6 +578,10 @@ class SaudeChecker {
         
         while (retryCount <= maxRetries && this.proxies.length > 0) {
           try {
+            // Se retry, mostra status de retry
+            if (retryCount > 0 && statusCallback) {
+              statusCallback('retry', cpf, retryCount);
+            }
             result = await this.makeAPIRequest(cpf, email, phonenumber, proxy);
             
             // Se sucesso ou encontrou cadastrado, para de testar outros emails

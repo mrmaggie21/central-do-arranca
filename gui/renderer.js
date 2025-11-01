@@ -347,14 +347,30 @@ async function updateStats() {
     }
 }
 
-function updateCPFTable(cpf, status, proxy, timestamp) {
-    // Adicionar novo CPF ao início do array
-    recentCPFs.unshift({
+function updateCPFTable(cpf, status, proxy, timestamp, statusText = null) {
+    // Verifica se já existe na lista
+    const existingIndex = recentCPFs.findIndex(item => item.cpf === cpf);
+    
+    if (existingIndex >= 0) {
+      // Atualiza existente
+      recentCPFs[existingIndex].status = status;
+      recentCPFs[existingIndex].proxy = proxy || 'Sem Proxy';
+      if (statusText) {
+        recentCPFs[existingIndex].statusText = statusText;
+      }
+      if (timestamp) {
+        recentCPFs[existingIndex].timestamp = timestamp;
+      }
+    } else {
+      // Adicionar novo CPF ao início do array
+      recentCPFs.unshift({
         cpf: cpf,
         status: status,
+        statusText: statusText || null,
         proxy: proxy || 'Sem Proxy',
         timestamp: timestamp || new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
-    });
+      });
+    }
     
     // Manter apenas os últimos 20 CPFs
     if (recentCPFs.length > 20) {
@@ -386,7 +402,11 @@ function renderCPFTable() {
                 break;
             case 'checking':
                 statusClass = 'status-checking';
-                statusText = 'VERIFICANDO';
+                statusText = item.statusText || 'VERIFICANDO';
+                break;
+            case 'skipped':
+                statusClass = 'status-checking';
+                statusText = item.statusText || 'DADOS INSUFICIENTES';
                 break;
             case 'generated':
                 statusClass = 'status-checking';

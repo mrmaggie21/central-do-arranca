@@ -847,8 +847,43 @@ async function startContinuousChecking(config) {
       updateModuleSelectorStatus();
     }
     
+    // Callback para atualizar status em tempo real
+    const statusCallback = (status, cpf, extra = null) => {
+      if (currentModuleWindow && !currentModuleWindow.isDestroyed()) {
+        let statusText = '';
+        let statusType = 'checking';
+        
+        switch (status) {
+          case 'buscando_email':
+            statusText = '🔍 Buscando email';
+            break;
+          case 'dados_insuficientes':
+            statusText = '⚠️ Dados insuficientes';
+            statusType = 'skipped';
+            break;
+          case 'testando':
+            statusText = '🧪 Testando...';
+            break;
+          case 'testando_email':
+            statusText = `🧪 Testando email ${extra}`;
+            break;
+          case 'retry':
+            statusText = `🔄 Retry ${extra}`;
+            break;
+          default:
+            statusText = '⏳ Processando...';
+        }
+        
+        currentModuleWindow.webContents.send('cpf-checking', {
+          cpf: cpf,
+          status: statusType,
+          statusText: statusText
+        });
+      }
+    };
+    
     // Verifica lote de CPFs
-    const results = await checker.checkMultipleCPFs(cpfs);
+    const results = await checker.checkMultipleCPFs(cpfs, statusCallback);
     
     // Remove status "checking" após processar (volta para aura verde)
     if (activeModules[currentModuleName]) {
