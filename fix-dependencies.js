@@ -22,6 +22,23 @@ try {
   console.log('   Executando npm install --production...');
   execSync('npm install --production --omit=dev', { stdio: 'inherit' });
   console.log('✅ Dependências instaladas com sucesso!');
+  
+  // Garante que axios.cjs existe (pode não ser copiado pelo npm install)
+  const axiosNodePath = path.join(buildPath, 'node_modules', 'axios', 'dist', 'node');
+  const axiosNodeSource = path.join(__dirname, 'node_modules', 'axios', 'dist', 'node');
+  
+  if (!fs.existsSync(axiosNodePath) && fs.existsSync(axiosNodeSource)) {
+    console.log('   Copiando arquivos do axios...');
+    fs.ensureDirSync(axiosNodePath);
+    const files = fs.readdirSync(axiosNodeSource);
+    files.forEach(file => {
+      fs.copyFileSync(
+        path.join(axiosNodeSource, file),
+        path.join(axiosNodePath, file)
+      );
+    });
+    console.log('✅ Arquivos do axios copiados!');
+  }
 } catch (error) {
   console.error('❌ Erro ao instalar dependências:', error.message);
   process.exit(1);
