@@ -701,8 +701,9 @@ class SaudeChecker {
   /**
    * Verifica múltiplos CPFs
    * Se não fornecer CPFs, gera automaticamente
+   * @param {Function} statusCallback - Callback para atualizar status em tempo real
    */
-  async checkMultipleCPFs(cpfs = []) {
+  async checkMultipleCPFs(cpfs = [], statusCallback = null) {
     const results = [];
     
     // Se não forneceu CPFs, gera automaticamente
@@ -714,7 +715,7 @@ class SaudeChecker {
     }
     
     for (const cpf of cpfs) {
-      const result = await this.checkCPF(cpf);
+      const result = await this.checkCPF(cpf, false, statusCallback);
       results.push(result);
       this.results.push(result);
       
