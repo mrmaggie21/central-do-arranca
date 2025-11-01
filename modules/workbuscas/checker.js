@@ -449,6 +449,58 @@ class WorkBuscasChecker {
       extracted.empregos = data.empregos;
     }
     
+    // Vizinhos (pessoas com endereços próximos)
+    if (data.vizinhos && Array.isArray(data.vizinhos) && data.vizinhos.length > 0) {
+      extracted.vizinhos = data.vizinhos.map(v => ({
+        nome: v.nome || null,
+        cpf: v.cpf || null,
+        dataNascimento: v.dataNascimento || null,
+        idade: v.idade || null,
+        sexo: v.sexo || null,
+        nomeMae: v.nomeMae || null
+      })).filter(v => v.nome !== null);
+    }
+    
+    // Compras (compras online)
+    if (data.comprasId && Array.isArray(data.comprasId) && data.comprasId.length > 0) {
+      extracted.comprasId = data.comprasId.map(c => ({
+        produto: c.produto || null,
+        detalhe: c.detalhe || null,
+        quantidade: c.quantidade || null,
+        preco: c.preco || null
+      })).filter(c => c.produto !== null);
+    }
+    
+    // Perfil de Consumo
+    if (data.perfilConsumo && typeof data.perfilConsumo === 'object') {
+      extracted.perfilConsumo = data.perfilConsumo;
+    }
+    
+    // Dados Imposto
+    if (data.DadosImposto && Array.isArray(data.DadosImposto) && data.DadosImposto.length > 0) {
+      extracted.DadosImposto = data.DadosImposto;
+    }
+    
+    // Lista de Documentos (CNS, NIS, etc)
+    if (data.listaDocumentos && typeof data.listaDocumentos === 'object') {
+      extracted.listaDocumentos = data.listaDocumentos;
+    }
+    
+    // Servidor SIAPE
+    if (data.servidor_siape && typeof data.servidor_siape === 'object') {
+      extracted.servidor_siape = data.servidor_siape;
+    }
+    
+    // Flags
+    if (data.flags && typeof data.flags === 'object') {
+      extracted.flags = data.flags;
+    }
+    
+    // Foto
+    if (data.foto && typeof data.foto === 'object') {
+      extracted.foto = data.foto;
+    }
+    
     // Verifica se pelo menos algum dado foi extraído
     const hasAnyData = Object.values(extracted).some(v => {
       if (Array.isArray(v)) return v.length > 0;
