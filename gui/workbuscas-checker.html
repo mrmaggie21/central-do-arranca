@@ -6,207 +6,573 @@
     <title>Central do Arranca - WorkBuscas Checker</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .workbuscas-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .consult-form {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        .form-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-title h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 10px 0;
+        }
+        .form-title p {
+            font-size: 14px;
+            color: #9ca3af;
+            margin: 0;
+        }
+        .input-group {
+            margin-bottom: 25px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #e5e7eb;
+            margin-bottom: 10px;
+        }
+        .cpf-input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #ffffff;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        .cpf-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .cpf-input::placeholder {
+            color: #6b7280;
+        }
+        .consult-btn {
+            width: 100%;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        .consult-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+        .consult-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        .consult-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .result-container {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            max-height: 600px;
+            overflow-y: auto;
+            display: none;
+        }
+        .result-container.show {
+            display: block;
+        }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .result-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+            margin: 0;
+        }
+        .result-status {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .result-status.found {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        .result-status.not-found {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .result-status.error {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        .result-content {
+            display: grid;
+            gap: 20px;
+        }
+        .data-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .data-section h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #3b82f6;
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .data-item:last-child {
+            border-bottom: none;
+        }
+        .data-label {
+            font-size: 14px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+        .data-value {
+            font-size: 14px;
+            color: #ffffff;
+            font-weight: 600;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
+        }
+        .telefones-list, .emails-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .telefone-item, .email-item {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .telefone-item .info, .email-item .info {
+            flex: 1;
+        }
+        .telefone-item .numero, .email-item .email {
+            font-size: 14px;
+            color: #ffffff;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .telefone-item .details, .email-item .details {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .whatsapp-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        .loading.show {
+            display: block;
+        }
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            color: #ef4444;
+            text-align: center;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
         <div class="app-main">
             <!-- Sidebar -->
             <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo-container">
-                    <img src="../cpf_logo.jpg" alt="WorkBuscas Logo" class="logo-image">
-                    <div class="logo-text">
-                        <h1>Central do Arranca</h1>
-                        <span class="version">v1.1.0</span>
-                    </div>
-                </div>
-            </div>
-            
-            <nav class="sidebar-nav">
-                <div class="nav-section">
-                    <button id="backToMenuBtn" class="btn btn-secondary btn-back-menu">
-                        <span class="btn-icon">⬅️</span>
-                        <span class="btn-text">Voltar ao Menu</span>
-                    </button>
-                </div>
-                <div class="nav-section">
-                    <h3>⚙️ Configurações</h3>
-                    <div class="config-group">
-                        <div class="config-item">
-                            <label for="delay">Delay (segundos)</label>
-                            <input type="number" id="delay" min="1" max="60" value="2">
-                        </div>
-                        <div class="config-item">
-                            <label for="mode">Modo de execução</label>
-                            <select id="mode">
-                                <option value="continuous">Contínuo</option>
-                                <option value="limited">Limitado</option>
-                            </select>
-                        </div>
-                        <div class="config-item">
-                            <label for="batchSize">CPFs por lote</label>
-                            <input type="number" id="batchSize" min="1" max="100" value="10">
-                        </div>
-                        <div class="config-item" id="quantity-row" style="display: none;">
-                            <label for="quantity">Quantidade</label>
-                            <input type="number" id="quantity" min="1" max="1000" value="10">
+                <div class="sidebar-header">
+                    <div class="logo-container">
+                        <img src="../cpf_logo.jpg" alt="WorkBuscas Logo" class="logo-image">
+                        <div class="logo-text">
+                            <h1>Central do Arranca</h1>
+                            <span class="version">v1.3.0</span>
                         </div>
                     </div>
                 </div>
                 
-                <div class="nav-section">
-                    <h3>🎮 Controles</h3>
-                    <div class="button-group">
-                        <button id="startBtn" class="btn btn-primary">
-                            <span class="btn-icon">🚀</span>
-                            <span class="btn-text">Iniciar</span>
-                        </button>
-                        <button id="stopBtn" class="btn btn-danger" disabled>
-                            <span class="btn-icon">🛑</span>
-                            <span class="btn-text">Parar</span>
-                        </button>
-                        <button id="testBtn" class="btn btn-secondary">
-                            <span class="btn-icon">🎲</span>
-                            <span class="btn-text">Gerar CPF</span>
-                        </button>
-                        <button id="openFolderBtn" class="btn btn-info">
-                            <span class="btn-icon">📁</span>
-                            <span class="btn-text">Abrir Pasta</span>
+                <nav class="sidebar-nav">
+                    <div class="nav-section">
+                        <button id="backToMenuBtn" class="btn btn-secondary btn-back-menu">
+                            <span class="btn-icon">⬅️</span>
+                            <span class="btn-text">Voltar ao Menu</span>
                         </button>
                     </div>
-                </div>
-                
-                <div class="nav-section">
-                    <h3>🧪 Teste Específico</h3>
-                    <div class="test-group">
-                        <input type="text" id="cpfTestInput" placeholder="000.000.000-00" maxlength="14">
-                        <button id="testSpecificBtn" class="btn btn-success">
-                            <span class="btn-icon">✅</span>
-                            <span class="btn-text">Testar</span>
-                        </button>
-                    </div>
-                </div>
-            </nav>
-        </aside>
+                </nav>
+            </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header -->
-            <header class="main-header">
-                <div class="header-left">
-                    <h2 id="headerTitle">WorkBuscas Checker</h2>
-                    <p id="headerSubtitle">Consulta completa de CPF</p>
-                </div>
-                <div class="header-right">
-                    <div class="status-indicator">
-                        <div class="status-dot" id="statusDot"></div>
-                        <span id="statusText">Aguardando</span>
-                    </div>
-                </div>
-            </header>
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="workbuscas-container">
+                    <div class="consult-form">
+                        <div class="form-title">
+                            <h2>🔍 Consulta WorkBuscas</h2>
+                            <p>Digite o CPF para consultar dados completos</p>
+                        </div>
 
-            <!-- Statistics Cards -->
-            <section class="stats-section">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">📊</div>
-                        <div class="stat-content">
-                            <h3 id="totalVerified">0</h3>
-                            <p>CPFs Verificados</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-content">
-                            <h3 id="validFound">0</h3>
-                            <p>CPFs Encontrados</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📈</div>
-                        <div class="stat-content">
-                            <h3 id="successRate">0.000%</h3>
-                            <p>Taxa de Sucesso</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">⏱️</div>
-                        <div class="stat-content">
-                            <h3 id="elapsedTime">0h 0m</h3>
-                            <p>Tempo Decorrido</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                        <form id="consultForm">
+                            <div class="input-group">
+                                <label for="cpfInput">CPF</label>
+                                <input 
+                                    type="text" 
+                                    id="cpfInput" 
+                                    class="cpf-input" 
+                                    placeholder="000.000.000-00" 
+                                    maxlength="14"
+                                    required
+                                />
+                            </div>
 
-            <!-- Current CPF Display -->
-            <section class="current-cpf-section">
-                <div class="cpf-container">
-                    <h3>Últimos CPFs Verificados</h3>
-                    <div class="cpf-table-container">
-                        <table class="cpf-table" id="cpfTable">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>CPF</th>
-                                    <th>Status</th>
-                                    <th>Horário</th>
-                                </tr>
-                            </thead>
-                            <tbody id="cpfTableBody">
-                                <tr class="no-data">
-                                    <td colspan="4">Aguardando início da verificação...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
+                            <button type="submit" id="consultBtn" class="consult-btn">
+                                🔍 Consultar CPF
+                            </button>
+                        </form>
 
-            <!-- Content Grid -->
-            <section class="content-grid">
-                <!-- Log Panel -->
-                <div class="log-panel">
-                    <div class="panel-header">
-                        <h3>📝 Log de Atividade</h3>
-                        <button id="clearLogBtn" class="btn btn-small">🗑️ Limpar</button>
-                    </div>
-                    <div class="log-content" id="logContent">
-                        <div class="log-entry info">
-                            <span class="timestamp">[SISTEMA]</span>
-                            <span class="message">WorkBuscas Checker iniciado. Configure os parâmetros e inicie a verificação.</span>
+                        <!-- Loading -->
+                        <div id="loading" class="loading">
+                            <div class="spinner"></div>
+                            <div class="loading-text">Consultando CPF...</div>
+                        </div>
+
+                        <!-- Error Message -->
+                        <div id="errorMessage" class="error-message"></div>
+
+                        <!-- Result Container -->
+                        <div id="resultContainer" class="result-container">
+                            <div class="result-header">
+                                <h3>Resultado da Consulta</h3>
+                                <span id="resultStatus" class="result-status"></span>
+                            </div>
+                            <div id="resultContent" class="result-content"></div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Valid CPFs Panel -->
-                <div class="valid-cpfs-panel">
-                    <div class="panel-header">
-                        <h3>✅ CPFs Encontrados</h3>
-                        <span class="count-badge" id="validCount">0</span>
-                    </div>
-                    <div class="valid-cpfs-list" id="validCpfsList">
-                        <div class="no-results">
-                            <div class="no-results-icon">🔍</div>
-                            <p>Nenhum CPF encontrado ainda</p>
-                            <small>Os resultados aparecerão aqui automaticamente</small>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
+            </main>
         </div>
         
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
                 <p>&copy; 2025 Time do Arranca - Todos os direitos reservados</p>
-                <p class="footer-subtitle">Central do Arranca - WorkBuscas Checker v1.1.0</p>
+                <p class="footer-subtitle">Central do Arranca - WorkBuscas Checker v1.3.0</p>
             </div>
         </footer>
     </div>
 
-    <script src="renderer.js"></script>
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        // Formata CPF
+        function formatCPF(value) {
+            value = value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            }
+            return value;
+        }
+
+        // CPF Input formatting
+        const cpfInput = document.getElementById('cpfInput');
+        cpfInput.addEventListener('input', (e) => {
+            e.target.value = formatCPF(e.target.value);
+        });
+
+        // Form submit
+        const consultForm = document.getElementById('consultForm');
+        const consultBtn = document.getElementById('consultBtn');
+        const loading = document.getElementById('loading');
+        const resultContainer = document.getElementById('resultContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultContent = document.getElementById('resultContent');
+        const resultStatus = document.getElementById('resultStatus');
+
+        consultForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const cpf = cpfInput.value.replace(/\D/g, '');
+            
+            if (cpf.length !== 11) {
+                showError('CPF inválido! Digite um CPF com 11 dígitos.');
+                return;
+            }
+
+            // Formata CPF para exibição
+            const formattedCPF = formatCPF(cpf);
+
+            // Show loading
+            consultBtn.disabled = true;
+            loading.classList.add('show');
+            errorMessage.classList.remove('show');
+            resultContainer.classList.remove('show');
+
+            // Envia requisição
+            try {
+                const result = await ipcRenderer.invoke('test-single-cpf', formattedCPF);
+                handleResult(result, formattedCPF);
+            } catch (error) {
+                showError('Erro ao consultar CPF: ' + error.message);
+            } finally {
+                consultBtn.disabled = false;
+                loading.classList.remove('show');
+            }
+        });
+
+        function handleResult(result, cpf) {
+            if (!result.success) {
+                showError(result.error || 'Erro ao consultar CPF');
+                return;
+            }
+
+            if (result.interpretation === 'not_found' || !result.data) {
+                resultStatus.textContent = 'Não encontrado';
+                resultStatus.className = 'result-status not-found';
+                resultContent.innerHTML = '<p style="text-align: center; color: #9ca3af; padding: 20px;">CPF não encontrado na base de dados.</p>';
+                resultContainer.classList.add('show');
+                return;
+            }
+
+            // CPF encontrado - mostra dados
+            resultStatus.textContent = 'Encontrado';
+            resultStatus.className = 'result-status found';
+
+            const data = result.data;
+            let html = '';
+
+            // Nome
+            if (data.nome) {
+                html += `
+                    <div class="data-section">
+                        <h4>👤 Dados Pessoais</h4>
+                        <div class="data-item">
+                            <span class="data-label">Nome:</span>
+                            <span class="data-value">${data.nome}</span>
+                        </div>
+                `;
+                if (data.dataNascimento) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Data de Nascimento:</span>
+                            <span class="data-value">${data.dataNascimento}</span>
+                        </div>
+                    `;
+                }
+                if (data.nomeMae) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Nome da Mãe:</span>
+                            <span class="data-value">${data.nomeMae}</span>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+
+            // Telefones
+            if (data.telefones && data.telefones.length > 0) {
+                html += `
+                    <div class="data-section">
+                        <h4>📞 Telefones (${data.telefones.length})</h4>
+                        <div class="telefones-list">
+                `;
+                data.telefones.forEach(tel => {
+                    html += `
+                        <div class="telefone-item">
+                            <div class="info">
+                                <div class="numero">${tel.numero || 'N/A'}</div>
+                                <div class="details">
+                                    ${tel.operadora ? `Operadora: ${tel.operadora}` : ''}
+                                    ${tel.tipo ? ` | Tipo: ${tel.tipo}` : ''}
+                                    ${tel.status ? ` | Status: ${tel.status}` : ''}
+                                </div>
+                            </div>
+                            ${tel.whatsapp ? '<span class="whatsapp-badge">WhatsApp</span>' : ''}
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
+
+            // Emails
+            if (data.emails && data.emails.length > 0) {
+                html += `
+                    <div class="data-section">
+                        <h4>📧 Emails (${data.emails.length})</h4>
+                        <div class="emails-list">
+                `;
+                data.emails.forEach(email => {
+                    html += `
+                        <div class="email-item">
+                            <div class="info">
+                                <div class="email">${email.email || 'N/A'}</div>
+                                ${email.tipo ? `<div class="details">Tipo: ${email.tipo}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
+
+            // Dados Econômicos
+            if (data.renda || data.score) {
+                html += `
+                    <div class="data-section">
+                        <h4>💰 Dados Econômicos</h4>
+                `;
+                if (data.renda) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Renda:</span>
+                            <span class="data-value">R$ ${data.renda}</span>
+                        </div>
+                    `;
+                }
+                if (data.score) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Score CSB:</span>
+                            <span class="data-value">${data.score}</span>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+
+            // RG
+            if (data.rg) {
+                html += `
+                    <div class="data-section">
+                        <h4>🆔 RG</h4>
+                        <div class="data-item">
+                            <span class="data-label">Número:</span>
+                            <span class="data-value">${data.rg}</span>
+                        </div>
+                `;
+                if (data.rgDataEmissao) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Data de Emissão:</span>
+                            <span class="data-value">${data.rgDataEmissao}</span>
+                        </div>
+                    `;
+                }
+                if (data.rgOrgaoEmissor) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">Órgão Emissor:</span>
+                            <span class="data-value">${data.rgOrgaoEmissor}</span>
+                        </div>
+                    `;
+                }
+                if (data.rgUfEmissao) {
+                    html += `
+                        <div class="data-item">
+                            <span class="data-label">UF de Emissão:</span>
+                            <span class="data-value">${data.rgUfEmissao}</span>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+
+            resultContent.innerHTML = html || '<p style="text-align: center; color: #9ca3af; padding: 20px;">Nenhum dado disponível.</p>';
+            resultContainer.classList.add('show');
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+        }
+
+        // Voltar ao menu
+        document.getElementById('backToMenuBtn').addEventListener('click', () => {
+            ipcRenderer.send('back-to-menu');
+        });
+
+        // Log messages
+        ipcRenderer.on('log-message', (event, data) => {
+            console.log('[WorkBuscas]', data.message);
+        });
+    </script>
 </body>
 </html>
-

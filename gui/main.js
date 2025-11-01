@@ -610,6 +610,11 @@ ipcMain.handle('test-single-cpf', async (event, cpf) => {
         delay: 5000,
         timeout: 15000
       });
+    } else if (moduleName === 'workbuscas') {
+      checkers[moduleName] = new WorkBuscasChecker({
+        delay: 2000,
+        timeout: 15000
+      });
     }
   }
   
@@ -626,6 +631,45 @@ ipcMain.handle('test-single-cpf', async (event, cpf) => {
       });
     }
     
+    // WorkBuscas tem formato diferente
+    if (moduleName === 'workbuscas') {
+      if (result.success) {
+        const status = result.interpretation === 'found' ? 'found' : 'not_found';
+        
+        // Salva se encontrou dados
+        if (status === 'found' && result.data) {
+          // Salva resultado
+          try {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+            const filename = `workbuscas-result-${timestamp}.txt`;
+            await checker.saveResults(filename);
+          } catch (saveError) {
+            console.error('[WorkBuscas] Erro ao salvar resultado:', saveError);
+          }
+        }
+        
+        // Retorna resultado formatado para WorkBuscas
+        return {
+          success: true,
+          result: {
+            cpf: result.cpf,
+            success: result.success,
+            interpretation: result.interpretation,
+            data: result.data || null,
+            message: result.interpretation === 'found' ? 'CPF encontrado' : 'CPF não encontrado',
+            timestamp: result.timestamp
+          }
+        };
+      } else {
+        return {
+          success: false,
+          error: result.error || 'Erro ao consultar CPF',
+          status: result.status
+        };
+      }
+    }
+    
+    // Código original para Gemeos e Saúde
     if (result.success) {
       const status = result.interpretation === 'registered' ? 'registered' : 'not_registered';
       if (result.proxy && result.proxy !== 'Sem Proxy') {
