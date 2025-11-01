@@ -20,7 +20,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
             padding: 40px;
-            max-width: 600px;
+            max-width: 95%;
             width: 100%;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
@@ -158,13 +158,23 @@
         }
         .result-content {
             display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 20px;
+        }
+        
+        @media (max-width: 1200px) {
+            .result-content {
+                grid-template-columns: 1fr;
+            }
         }
         .data-section {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 12px;
             padding: 20px;
+            min-width: 0;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
         .data-section h4 {
             font-size: 16px;
@@ -194,8 +204,9 @@
             color: #ffffff;
             font-weight: 600;
             text-align: right;
-            max-width: 60%;
+            max-width: 70%;
             word-break: break-word;
+            flex-shrink: 0;
         }
         .telefones-list, .emails-list {
             display: flex;
