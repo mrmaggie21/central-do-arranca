@@ -198,6 +198,13 @@ ipcRenderer.on('proxy-info', (event, data) => {
     addLogEntry('info', `[${getCurrentTime()}] 🌐 Proxy: ${data.proxy} (${data.hasAuth ? 'Auth' : 'No Auth'})`);
 });
 
+ipcRenderer.on('cpf-checking', (event, data) => {
+    // Atualiza tabela com status intermediário
+    if (data.statusText) {
+      updateCPFTable(data.cpf, data.status || 'checking', 'Sistema', new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }), data.statusText);
+    }
+});
+
 ipcRenderer.on('cpf-result', (event, data) => {
     handleCPFResult(data);
 });
