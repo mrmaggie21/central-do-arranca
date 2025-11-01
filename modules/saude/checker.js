@@ -478,12 +478,18 @@ class SaudeChecker {
 
   /**
    * Verifica múltiplos CPFs
+   * Se não fornecer CPFs, gera automaticamente
    */
-  async checkMultipleCPFs(cpfs) {
+  async checkMultipleCPFs(cpfs = []) {
     const results = [];
     
-    if (this.proxies.length === 0) {
-      await this.loadProxies();
+    // Se não forneceu CPFs, gera automaticamente
+    if (!cpfs || cpfs.length === 0) {
+      console.log('[Saúde] Gerando CPFs válidos automaticamente...');
+      cpfs = [];
+      for (let i = 0; i < this.batchSize; i++) {
+        cpfs.push(this.generateValidCPF());
+      }
     }
     
     for (const cpf of cpfs) {
@@ -491,8 +497,8 @@ class SaudeChecker {
       results.push(result);
       this.results.push(result);
       
-      // Pequeno delay entre requisições
-      await this.sleep(100);
+      // Delay entre requisições
+      await this.sleep(this.delay);
     }
     
     return results;
