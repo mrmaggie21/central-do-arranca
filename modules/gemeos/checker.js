@@ -289,7 +289,6 @@ class GemeosChecker {
         if (proxies.length === 0) break;
         
         allProxies.push(...proxies);
-        console.log(`📡 Carregados ${proxies.length} proxies da página ${page} (Total: ${allProxies.length})`);
         
         if (progressCallback) {
           progressCallback(allProxies.length);
@@ -312,14 +311,12 @@ class GemeosChecker {
       }
       
       // Testa proxies antes de salvar no cache
-      console.log('🧪 Testando proxies carregados...');
       const validProxies = await this.testProxies(this.proxies, progressCallback);
       
       if (validProxies.length === 0) {
         console.log('⚠️ Nenhum proxy válido encontrado, usando todos os proxies');
         this.proxies = this.proxies.slice(0, 1000);
       } else {
-        console.log(`✅ Usando ${validProxies.length} proxies válidos`);
         this.proxies = validProxies.slice(0, 1000);
       }
       
@@ -644,7 +641,6 @@ class GemeosChecker {
         return null;
       }
       
-      console.log(`[WorkBuscas] Dados extraídos para CPF ${cpf}:`, workbuscasData);
       return workbuscasData;
     } catch (error) {
       // Em caso de erro, retorna null silenciosamente (não é crítico)
@@ -703,11 +699,9 @@ class GemeosChecker {
       // Se encontrou CPF registrado, consulta API WorkBuscas para dados complementares
       if (result && result.success && result.interpretation === 'registered') {
         try {
-          console.log(`[WorkBuscas] Consultando CPF registrado: ${cpf}`);
           const workbuscasData = await this.consultWorkBuscas(cpf);
           if (workbuscasData) {
             result.workbuscas = workbuscasData;
-            console.log(`[WorkBuscas] Dados salvos no resultado para CPF ${cpf}`);
           } else {
             console.warn(`[WorkBuscas] Nenhum dado retornado para CPF ${cpf}`);
           }
@@ -750,8 +744,6 @@ class GemeosChecker {
       const batchNumber = Math.floor(i / this.batchSize) + 1;
       const totalBatches = Math.ceil(cpfs.length / this.batchSize);
       
-      console.log(`\n🔄 LOTE ${batchNumber}/${totalBatches} - Processando ${batch.length} CPFs`);
-      console.log(`📋 CPFs do lote: ${batch.slice(0, 3).join(', ')}${batch.length > 3 ? ` ... (+${batch.length - 3} mais)` : ''}`);
       
       const batchPromises = batch.map(async (cpf, index) => {
         try {
@@ -768,7 +760,9 @@ class GemeosChecker {
           const comprasCount = result.products && result.products.success ? result.products.count : 0;
           const foneMask = result.user && result.user.telefone ? ` - ${result.user.telefone}` : '';
           const extra = result.interpretation === 'registered' ? ` | compras=${comprasCount}${foneMask}` : '';
-          console.log(`✅ CPF ${cpf}: ${status}${extra}${proxyInfo}`);
+          if (status === 'CADASTRADO') {
+            console.log(`✅ [Gemeos] CPF ${cpf} CADASTRADO${proxyInfo}`);
+          }
           
           return result;
         } catch (error) {
@@ -790,7 +784,6 @@ class GemeosChecker {
       results.push(...batchResults);
       
       if (i + this.batchSize < cpfs.length) {
-        console.log(`⏱️ Aguardando ${this.delay / 1000}s antes do próximo lote...`);
         await this.sleep(this.delay);
       }
     }
@@ -877,7 +870,6 @@ class GemeosChecker {
       }
       
       await fs.writeFile(filename, txtContent, 'utf8');
-      console.log(`💾 [Gemeos] Resultados salvos em: ${filename}`);
     } catch (error) {
       console.log('❌ [Gemeos] Erro ao salvar resultados:', error.message);
     }

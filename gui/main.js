@@ -89,7 +89,6 @@ function createSplash() {
   // Aguarda a splash estar pronta antes de verificar atualizações
   return new Promise((resolve) => {
     splashWindow.webContents.once('did-finish-load', () => {
-      console.log('[Splash] Splash screen carregada e pronta');
       // Aguarda mais um pouco para garantir que o JS está rodando
       setTimeout(() => {
         resolve();
@@ -152,22 +151,18 @@ app.whenReady().then(async () => {
 
   // Verifica atualizações na splash screen
   try {
-    console.log('[Updater] Iniciando verificação de atualizações...');
     
     // Garante que a splash está pronta
     if (splashWindow && !splashWindow.isDestroyed()) {
       // Mostra mensagem inicial
       splashWindow.webContents.send('splash-log', '🔍 Verificando atualizações no GitHub...');
-      console.log('[Updater] Mensagem enviada para splash screen');
     } else {
       console.warn('[Updater] Splash window não está disponível');
     }
     
     const updateInfo = await updater.checkForUpdates();
-    console.log('[Updater] Resultado da verificação:', updateInfo);
     
     if (updateInfo && updateInfo.available) {
-      console.log('[Updater] Nova versão disponível:', updateInfo.latestVersion);
       if (splashWindow && !splashWindow.isDestroyed()) {
         splashWindow.webContents.send('splash-log', `✨ Nova versão disponível: v${updateInfo.latestVersion}`);
         splashWindow.webContents.send('splash-log', `📥 Baixando atualização...`);
@@ -240,14 +235,12 @@ app.whenReady().then(async () => {
       
       if (splashWindow && !splashWindow.isDestroyed()) {
         splashWindow.webContents.send('splash-log', versionMessage);
-        console.log('[Updater]', versionMessage);
       }
     }
   } catch (error) {
     console.error('[Updater] Erro ao verificar atualizações:', error);
     if (splashWindow && !splashWindow.isDestroyed()) {
       splashWindow.webContents.send('splash-log', `⚠️ Erro ao verificar atualizações: ${error.message}`);
-      console.log('[Updater] Mensagem de erro enviada para splash');
     }
   }
   
@@ -390,7 +383,6 @@ ipcMain.on('back-to-menu', (event) => {
     // Minimiza a janela ao invés de fechar - o checker continua rodando
     activeModules[moduleName].window.minimize();
     // NÃO remove do activeModules nem para o checker - apenas minimiza
-    console.log('[back-to-menu] Janela minimizada, checker continua rodando:', moduleName);
   }
   
   // Abre/mostra o menu de módulos
@@ -474,7 +466,6 @@ ipcMain.handle('start-checking', async (event, config) => {
   // Inicia verificação contínua (não await para não bloquear)
   // Usa setTimeout para garantir que o status seja atualizado primeiro
   setTimeout(() => {
-    console.log('[start-checking] Iniciando startContinuousChecking para módulo:', moduleName);
     startContinuousChecking(config).catch(err => {
       console.error('[start-checking] Erro ao iniciar verificação contínua:', err);
       if (activeModules[moduleName]) {
@@ -573,7 +564,6 @@ ipcMain.handle('open-results-folder', async () => {
   
   try {
     await shell.openPath(listaPath);
-    console.log(`📁 Pasta aberta: ${listaPath}`);
   } catch (error) {
     console.error('❌ Erro ao abrir pasta:', error.message);
     // Fallback: abrir pasta pai
@@ -633,13 +623,10 @@ ipcMain.handle('test-single-cpf', async (event, cpf) => {
     
     // WorkBuscas tem formato diferente
     if (moduleName === 'workbuscas') {
-      console.log('[WorkBuscas] Resultado completo:', JSON.stringify(result, null, 2));
       
       if (result.success) {
         const status = result.interpretation === 'found' ? 'found' : 'not_found';
         
-        console.log('[WorkBuscas] Status:', status);
-        console.log('[WorkBuscas] Has data:', !!result.data);
         
         // Salva se encontrou dados
         if (status === 'found' && result.data) {
@@ -673,7 +660,6 @@ ipcMain.handle('test-single-cpf', async (event, cpf) => {
           }
         };
       } else {
-        console.log('[WorkBuscas] Erro ao consultar:', result.error);
         return {
           success: false,
           error: result.error || 'Erro ao consultar CPF',
@@ -715,10 +701,6 @@ ipcMain.handle('test-single-cpf', async (event, cpf) => {
       }
       
       if (status === 'registered') {
-        console.log(`[DEBUG] Salvando CPF ${cpf} - Has workbuscas:`, !!result.workbuscas);
-        if (result.workbuscas) {
-          console.log(`[DEBUG] WorkBuscas data:`, JSON.stringify(result.workbuscas, null, 2));
-        }
         await saveSingleValidCPF(cpf, result, true, moduleName);
       }
       
@@ -770,17 +752,14 @@ async function startContinuousChecking(config) {
   
   // Verifica se o módulo específico está rodando
   if (!activeModules[currentModuleName]) {
-    console.log('[startContinuousChecking] Módulo não existe:', currentModuleName, 'activeModules:', Object.keys(activeModules));
-    return;
-  }
-  
-  if (!activeModules[currentModuleName].isRunning) {
-    console.log('[startContinuousChecking] Módulo não está marcado como rodando:', currentModuleName);
-    return;
-  }
-  
-  if (!isRunning) {
-    console.log('[startContinuousChecking] isRunning global é false, parando');
+      return;
+    }
+    
+    if (!activeModules[currentModuleName].isRunning) {
+      return;
+    }
+    
+    if (!isRunning) {
     // Atualiza status no menu
     if (activeModules[currentModuleName]) {
       activeModules[currentModuleName].isRunning = false;
@@ -790,7 +769,6 @@ async function startContinuousChecking(config) {
     return;
   }
   
-  console.log('[startContinuousChecking] Iniciando verificação para módulo:', currentModuleName, 'isRunning:', isRunning, 'module.isRunning:', activeModules[currentModuleName].isRunning);
   
   try {
     // Pega a janela do módulo que está rodando primeiro
@@ -842,8 +820,6 @@ async function startContinuousChecking(config) {
     const batchSize = config.batchSize || 20;
     const cpfs = CPFGenerator.generateMultiple(batchSize);
     
-    console.log('[startContinuousChecking] Geração de lote de CPFs:', cpfs.length, 'CPFs');
-    
     // Envia informações do lote para interface
     // Garante que as estatísticas do módulo existem
     if (!sessionStats[currentModuleName]) {
@@ -869,19 +845,15 @@ async function startContinuousChecking(config) {
     if (activeModules[currentModuleName]) {
       activeModules[currentModuleName].isChecking = true;
       updateModuleSelectorStatus();
-      console.log('[startContinuousChecking] Marcando como checking (aura laranja)');
     }
     
     // Verifica lote de CPFs
-    console.log('[startContinuousChecking] Iniciando verificação do lote...');
     const results = await checker.checkMultipleCPFs(cpfs);
-    console.log('[startContinuousChecking] Lote processado:', results.length, 'resultados');
     
     // Remove status "checking" após processar (volta para aura verde)
     if (activeModules[currentModuleName]) {
       activeModules[currentModuleName].isChecking = false;
       updateModuleSelectorStatus();
-      console.log('[startContinuousChecking] Removendo status checking (volta para aura verde)');
     }
     
     // Processa resultados do lote
@@ -949,10 +921,6 @@ async function startContinuousChecking(config) {
           });
         }
         if (status === 'registered') {
-          console.log(`[DEBUG] Salvando CPF ${result.cpf} - Has workbuscas:`, !!result.workbuscas);
-          if (result.workbuscas) {
-            console.log(`[DEBUG] WorkBuscas data:`, JSON.stringify(result.workbuscas, null, 2));
-          }
           saveSingleValidCPF(result.cpf, result, false, currentModuleName);
         }
       } else {
@@ -980,12 +948,10 @@ async function startContinuousChecking(config) {
     
     // Continua verificação após delay - verifica tanto isRunning global quanto do módulo
     if (isRunning && activeModules[currentModuleName] && activeModules[currentModuleName].isRunning) {
-      console.log('[startContinuousChecking] Agendando próximo lote em', config.delay || 5000, 'ms');
       moduleStats.intervalId = setTimeout(() => {
         startContinuousChecking(config);
       }, config.delay || 5000);
     } else {
-      console.log('[startContinuousChecking] Parando - isRunning:', isRunning, 'módulo rodando:', activeModules[currentModuleName]?.isRunning);
       // Se parou, atualiza status no menu
       if (activeModules[currentModuleName]) {
         activeModules[currentModuleName].isRunning = false;
@@ -1138,7 +1104,6 @@ async function saveValidCPF(result, moduleName = 'gemeos') {
     }
     txtContent += `\n`;
   } else {
-    console.log(`[DEBUG saveValidCPF] CPF ${result.cpf} NÃO TEM dados workbuscas no resultado!`);
   }
   
   if (result.products && result.products.success && result.products.data && result.products.data.length > 0) {
@@ -1280,7 +1245,6 @@ async function saveSingleValidCPF(cpf, result, isManualTest = false, moduleName 
     }
     txtContent += `\n`;
   } else {
-    console.log(`[DEBUG saveSingleValidCPF] CPF ${cpf} NÃO TEM dados workbuscas no resultado!`);
   }
   
   if (result.products && result.products.success && result.products.data && result.products.data.length > 0) {

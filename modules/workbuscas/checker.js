@@ -67,7 +67,6 @@ class WorkBuscasChecker {
       const cpfClean = cpf.replace(/\D/g, '');
       const url = `${this.workbuscasUrl}?token=${this.workbuscasToken}&modulo=cpf&consulta=${cpfClean}`;
       
-      console.log('[WorkBuscas] URL da requisição:', url);
       
       const axiosConfig = {
         method: 'get',
@@ -99,7 +98,6 @@ class WorkBuscasChecker {
       const data = response.data;
       
       // Log para debug
-      console.log('[WorkBuscas] Resposta da API para CPF', cpf, ':', JSON.stringify(data, null, 2));
       
       // Verifica se a resposta é válida
       if (!data || typeof data !== 'object') {
@@ -124,8 +122,6 @@ class WorkBuscasChecker {
         return v !== null && v !== undefined && v !== '';
       });
       
-      console.log('[WorkBuscas] CPF', cpf, '- Dados extraídos:', JSON.stringify(extractedData, null, 2));
-      console.log('[WorkBuscas] CPF', cpf, '- hasExtractedData:', hasExtractedData);
       
       if (!hasExtractedData) {
         console.log('[WorkBuscas] CPF', cpf, '- Nenhum dado válido extraído');
