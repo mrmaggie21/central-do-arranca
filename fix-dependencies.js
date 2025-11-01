@@ -4,7 +4,7 @@
 
 const { execSync } = require('child_process');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 
 const buildPath = path.join(__dirname, 'dist', 'Central do Arranca-win32-x64', 'resources', 'app');
 
@@ -27,17 +27,14 @@ try {
   const axiosNodePath = path.join(buildPath, 'node_modules', 'axios', 'dist', 'node');
   const axiosNodeSource = path.join(__dirname, 'node_modules', 'axios', 'dist', 'node');
   
-  if (!fs.existsSync(axiosNodePath) && fs.existsSync(axiosNodeSource)) {
+  // Garante que axios.cjs existe (sempre copia para ter certeza)
+  if (fs.existsSync(axiosNodeSource)) {
     console.log('   Copiando arquivos do axios...');
     fs.ensureDirSync(axiosNodePath);
-    const files = fs.readdirSync(axiosNodeSource);
-    files.forEach(file => {
-      fs.copyFileSync(
-        path.join(axiosNodeSource, file),
-        path.join(axiosNodePath, file)
-      );
-    });
+    fs.copySync(axiosNodeSource, axiosNodePath, { overwrite: true });
     console.log('✅ Arquivos do axios copiados!');
+  } else {
+    console.warn('⚠️  Arquivos do axios não encontrados na origem, mas continuando...');
   }
 } catch (error) {
   console.error('❌ Erro ao instalar dependências:', error.message);
