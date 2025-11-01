@@ -170,8 +170,26 @@ app.whenReady().then(async () => {
           
           if (splashWindow && !splashWindow.isDestroyed()) {
             splashWindow.webContents.send('splash-log', '✅ Download concluído!');
-            splashWindow.webContents.send('splash-log', '⚠️ Reinicie o aplicativo para aplicar a atualização.');
-            splashWindow.webContents.send('update-downloaded', { zipPath });
+            splashWindow.webContents.send('splash-log', '📦 Extraindo atualização...');
+          }
+          
+          // Extrai o ZIP automaticamente
+          try {
+            const extractedPath = await updater.applyUpdate(zipPath);
+            
+            if (splashWindow && !splashWindow.isDestroyed()) {
+              splashWindow.webContents.send('splash-log', '✅ Atualização extraída!');
+              splashWindow.webContents.send('splash-log', `📂 Arquivos em: ${extractedPath}`);
+              splashWindow.webContents.send('splash-log', '⚠️ Reinicie o aplicativo para aplicar a atualização.');
+              splashWindow.webContents.send('splash-log', '💡 Instruções: Substitua os arquivos da pasta do aplicativo pelos arquivos extraídos.');
+              splashWindow.webContents.send('update-downloaded', { zipPath, extractedPath });
+            }
+          } catch (extractError) {
+            console.error('[Updater] Erro ao extrair atualização:', extractError);
+            if (splashWindow && !splashWindow.isDestroyed()) {
+              splashWindow.webContents.send('splash-log', '❌ Erro ao extrair atualização. O arquivo ZIP foi salvo.');
+              splashWindow.webContents.send('splash-log', `📂 Local do ZIP: ${zipPath}`);
+            }
           }
         } catch (error) {
           console.error('[Updater] Erro ao baixar atualização:', error);
