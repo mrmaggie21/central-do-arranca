@@ -7,6 +7,7 @@ const testBtn = document.getElementById('testBtn');
 const testSpecificBtn = document.getElementById('testSpecificBtn');
 const openFolderBtn = document.getElementById('openFolderBtn');
 const clearLogBtn = document.getElementById('clearLogBtn');
+const backToMenuBtn = document.getElementById('backToMenuBtn');
 
 // Elementos da seção de teste
 const cpfTestInput = document.getElementById('cpfTestInput');
@@ -43,6 +44,50 @@ let proxiesLoaded = false;
 let proxyCount = 0;
 let recentCPFs = []; // Array para armazenar os últimos 20 CPFs verificados
 
+// Áudio: som curto quando encontrar CPF válido
+let audioCtx;
+let validAudio;
+const validAudioCandidates = [
+    '../steam_notification.mp3',                // resources/app/
+    'assets/steam_notification.mp3',            // resources/app/gui/assets/
+    '../assets/steam_notification.mp3'          // resources/app/assets/
+];
+function playValidSound() {
+    try {
+        // Tenta tocar arquivo MP3
+        if (!validAudio) {
+            for (const src of validAudioCandidates) {
+                try {
+                    const a = new Audio(src);
+                    a.volume = 0.6;
+                    validAudio = a; // tenta este caminho
+                    break;
+                } catch (_) {}
+            }
+        }
+        // Reinicia do começo para toques sequenciais
+        const playPromise = validAudio ? (validAudio.currentTime = 0, validAudio.play()) : Promise.reject();
+        if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(() => {
+                // Fallback: tom gerado
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                if (!audioCtx) audioCtx = new Ctx();
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.type = 'sine';
+                o.frequency.setValueAtTime(880, audioCtx.currentTime);
+                g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.08, audioCtx.currentTime + 0.01);
+                g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.25);
+                o.connect(g);
+                g.connect(audioCtx.destination);
+                o.start();
+                o.stop(audioCtx.currentTime + 0.28);
+            });
+        }
+    } catch (_) { /* ignora erros de áudio */ }
+}
+
 // Event Listeners
 startBtn.addEventListener('click', startChecking);
 stopBtn.addEventListener('click', stopChecking);
@@ -50,6 +95,9 @@ testBtn.addEventListener('click', generateTestCPF);
 testSpecificBtn.addEventListener('click', testSpecificCPF);
 openFolderBtn.addEventListener('click', openResultsFolder);
 clearLogBtn.addEventListener('click', clearLog);
+backToMenuBtn.addEventListener('click', () => {
+    ipcRenderer.send('back-to-menu');
+});
 
 modeSelect.addEventListener('change', (e) => {
     quantityRow.style.display = e.target.value === 'limited' ? 'block' : 'none';
@@ -93,10 +141,10 @@ ipcRenderer.on('log-message', (event, data) => {
 
 ipcRenderer.on('proxy-loading-start', (event, data) => {
     showProxyLoadingIndicator();
-    proxyLoadingText.textContent = '🇧🇷 Carregando proxies brasileiros...';
+    proxyLoadingText.textContent = '🌍 Carregando proxies...';
     proxyCount = 0;
     updateProxyCount();
-    addLogEntry('info', `[${getCurrentTime()}] 🔄 Iniciando carregamento dos proxies brasileiros...`);
+    addLogEntry('info', `[${getCurrentTime()}] 🔄 Iniciando carregamento dos proxies...`);
 });
 
 ipcRenderer.on('proxy-loading-progress', (event, data) => {
@@ -105,11 +153,11 @@ ipcRenderer.on('proxy-loading-progress', (event, data) => {
     
     // Atualiza texto baseado no progresso
     if (proxyCount < 25) {
-        proxyLoadingText.textContent = '🇧🇷 Carregando proxies brasileiros...';
+        proxyLoadingText.textContent = '🌍 Carregando proxies...';
         proxyLoadingSubtitle.textContent = '🌐 Conectando com API Webshare';
     } else if (proxyCount < 100) {
-        proxyLoadingText.textContent = '🌐 Filtrando proxies do Brasil...';
-        proxyLoadingSubtitle.textContent = '🇧🇷 Aplicando filtro geográfico';
+        proxyLoadingText.textContent = '🌐 Filtrando e validando proxies...';
+        proxyLoadingSubtitle.textContent = '🔎 Verificando disponibilidade';
     } else if (proxyCount < 500) {
         proxyLoadingText.textContent = '🧪 Testando proxies válidos...';
         proxyLoadingSubtitle.textContent = '✅ Verificando conectividade';
@@ -120,7 +168,7 @@ ipcRenderer.on('proxy-loading-progress', (event, data) => {
     
     // Mostra progresso a cada 100 proxies para não sobrecarregar o log
     if (proxyCount % 100 === 0 || proxyCount === 25) {
-        addLogEntry('info', `[${getCurrentTime()}] 📊 Progresso: ${proxyCount}/1000 proxies brasileiros carregados`);
+        addLogEntry('info', `[${getCurrentTime()}] 📊 Progresso: ${proxyCount}/1000 proxies carregados`);
     }
 });
 
@@ -128,10 +176,12 @@ ipcRenderer.on('proxy-loading-complete', (event, data) => {
     proxyCount = data.total;
     proxiesLoaded = true;
     updateProxyCount();
-    proxyLoadingText.textContent = '🎉 Proxies brasileiros carregados!';
-    proxyLoadingSubtitle.textContent = `🇧🇷 ${data.total} proxies do Brasil prontos`;
-    addLogEntry('success', `[${getCurrentTime()}] ✅ ${data.total} proxies brasileiros carregados com sucesso!`);
-    addLogEntry('info', `[${getCurrentTime()}] 🇧🇷 Sistema otimizado para proxies do Brasil!`);
+    proxyLoadingText.textContent = '🎉 Proxies carregados!';
+    proxyLoadingSubtitle.textContent = `${data.total} proxies prontos`;
+    addLogEntry('success', `[${getCurrentTime()}] ✅ ${data.total} proxies carregados com sucesso!`);
+    addLogEntry('info', `[${getCurrentTime()}] 🌍 Sistema pronto para iniciar verificações!`);
+    const headerTitle = document.getElementById('headerTitle');
+    if (headerTitle) headerTitle.textContent = `Proxies carregados: ${data.total}`;
     addLogEntry('info', `[${getCurrentTime()}] 🎮 Sistema pronto para iniciar verificações!`);
     
     setTimeout(() => {
@@ -392,6 +442,8 @@ function handleCPFResult(data) {
             }
             addValidCPF(data);
             addLogEntry('success', `[${getCurrentTime()}] ${logMessage}`);
+            // toca aviso sonoro curto (mp3 ou fallback tom)
+            playValidSound();
             break;
         case 'not_registered':
             statusClass = 'invalid';
@@ -439,8 +491,8 @@ function addValidCPF(data) {
     if (data.userData) {
         detailsHTML += `
             <div><strong>👤 Nome:</strong> ${data.userData.name}</div>
-            <div><strong>📧 Email:</strong> ${data.userData.email}</div>
-            <div><strong>📱 Telefone:</strong> ${data.userData.phone}</div>
+            <div><strong>📧 Email:</strong> ${data.userData.email || 'undefined'}</div>
+            <div><strong>📱 Telefone:</strong> ${data.userData.phone || 'N/A'}</div>
         `;
     }
     
@@ -449,6 +501,52 @@ function addValidCPF(data) {
         data.products.forEach((product, index) => {
             detailsHTML += `<div style="margin-left: 15px;">${index + 1}. ${product.title}</div>`;
         });
+    }
+
+    // Dados complementares da WorkBuscas
+    if (data.workbuscas) {
+        detailsHTML += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);"><strong>📊 Dados Complementares:</strong></div>`;
+        // Mostra todos os telefones
+        if (data.workbuscas.telefones && Array.isArray(data.workbuscas.telefones) && data.workbuscas.telefones.length > 0) {
+            data.workbuscas.telefones.forEach((tel, index) => {
+                let telInfo = `<strong>📱 Tel ${index + 1}:</strong> ${tel.numero}`;
+                if (tel.operadora && tel.operadora !== 'Não informado') {
+                    telInfo += ` (${tel.operadora})`;
+                }
+                if (tel.whatsapp) {
+                    telInfo += ` ✓ WhatsApp`;
+                }
+                detailsHTML += `<div style="margin-left: 10px;">${telInfo}</div>`;
+            });
+        } else if (data.workbuscas.telefone) {
+            // Fallback para compatibilidade
+            detailsHTML += `<div style="margin-left: 10px;"><strong>📱 Tel:</strong> ${data.workbuscas.telefone}</div>`;
+        }
+        if (data.workbuscas.email) {
+            detailsHTML += `<div style="margin-left: 10px;"><strong>📧 Email:</strong> ${data.workbuscas.email}</div>`;
+        }
+        if (data.workbuscas.renda) {
+            detailsHTML += `<div style="margin-left: 10px;"><strong>💰 Renda:</strong> R$ ${data.workbuscas.renda}</div>`;
+        }
+        if (data.workbuscas.score) {
+            detailsHTML += `<div style="margin-left: 10px;"><strong>📈 Score:</strong> ${data.workbuscas.score}</div>`;
+        }
+        if (data.workbuscas.nomeMae) {
+            detailsHTML += `<div style="margin-left: 10px;"><strong>👩 Mãe:</strong> ${data.workbuscas.nomeMae}</div>`;
+        }
+        if (data.workbuscas.dataNascimento) {
+            detailsHTML += `<div style="margin-left: 10px;"><strong>📅 Nascimento:</strong> ${data.workbuscas.dataNascimento}</div>`;
+        }
+        if (data.workbuscas.rg) {
+            let rgInfo = `${data.workbuscas.rg}`;
+            if (data.workbuscas.rgUfEmissao) {
+                rgInfo += ` (${data.workbuscas.rgUfEmissao})`;
+            }
+            if (data.workbuscas.rgDataEmissao) {
+                rgInfo += ` - Emitido em: ${data.workbuscas.rgDataEmissao}`;
+            }
+            detailsHTML += `<div style="margin-left: 10px;"><strong>🆔 RG:</strong> ${rgInfo}</div>`;
+        }
     }
     
     if (data.proxy && data.proxy !== 'Sem Proxy') {

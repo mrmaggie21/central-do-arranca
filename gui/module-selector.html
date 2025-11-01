@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Escolha um Módulo</title>
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #0f1115 0%, #1a1d29 100%);
+      color: #e5e7eb;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .container {
+      text-align: center;
+      padding: 40px;
+    }
+    .modules-grid {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 60px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    h1 {
+      font-weight: 600;
+      margin: 0 0 40px 0;
+      font-size: 32px;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .logo-container {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-block;
+      padding: 0;
+      border-radius: 50%;
+      background: transparent;
+      overflow: visible;
+      position: relative;
+      border: 4px solid transparent;
+    }
+    .logo-container.status-running {
+      border-color: #10b981;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.6), 0 0 60px rgba(16, 185, 129, 0.4);
+      animation: aura-green 2s ease-in-out infinite;
+    }
+    .logo-container.status-stopped {
+      border-color: #ef4444;
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.6), 0 0 60px rgba(239, 68, 68, 0.4);
+      animation: aura-red 3s ease-in-out infinite;
+    }
+    .logo-container.status-checking {
+      border-color: #f59e0b;
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.6), 0 0 60px rgba(245, 158, 11, 0.4);
+      animation: aura-orange 1.5s ease-in-out infinite;
+    }
+    .logo-container.status-none {
+      border-color: transparent;
+      animation: none;
+    }
+    @keyframes aura-green {
+      0%, 100% { 
+        box-shadow: 0 0 30px rgba(16, 185, 129, 0.6), 0 0 60px rgba(16, 185, 129, 0.4);
+        border-color: #10b981;
+      }
+      50% { 
+        box-shadow: 0 0 50px rgba(16, 185, 129, 0.8), 0 0 90px rgba(16, 185, 129, 0.6);
+        border-color: #34d399;
+      }
+    }
+    @keyframes aura-red {
+      0%, 100% { 
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.5), 0 0 40px rgba(239, 68, 68, 0.3);
+        border-color: #ef4444;
+      }
+      50% { 
+        box-shadow: 0 0 35px rgba(239, 68, 68, 0.7), 0 0 70px rgba(239, 68, 68, 0.5);
+        border-color: #f87171;
+      }
+    }
+    @keyframes aura-orange {
+      0%, 100% { 
+        box-shadow: 0 0 25px rgba(245, 158, 11, 0.6), 0 0 50px rgba(245, 158, 11, 0.4);
+        border-color: #f59e0b;
+      }
+      50% { 
+        box-shadow: 0 0 45px rgba(245, 158, 11, 0.8), 0 0 80px rgba(245, 158, 11, 0.6);
+        border-color: #fbbf24;
+      }
+    }
+    .status-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border-radius: 12px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+      z-index: 10;
+      white-space: nowrap;
+      animation: pulse-badge 2s ease-in-out infinite;
+    }
+    @keyframes pulse-badge {
+      0%, 100% { transform: scale(1); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
+      50% { transform: scale(1.05); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.6); }
+    }
+    .module-label {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #e5e7eb;
+      font-weight: 500;
+    }
+    .active-modules-list {
+      margin-top: 30px;
+      padding: 15px 20px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .active-modules-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #ffffff;
+    }
+    .module-status-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+    .module-status-item.active {
+      color: #10b981;
+    }
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      margin-right: 8px;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .logo-container:hover {
+      transform: scale(1.05);
+    }
+    .logo-container:active {
+      transform: scale(0.98);
+    }
+    .logo {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: contain;
+      display: block;
+      padding: 0;
+      margin: 0;
+    }
+    .hint {
+      margin-top: 30px;
+      color: #9ca3af;
+      font-size: 14px;
+      opacity: 0.8;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(180deg, transparent 0%, rgba(15, 17, 21, 0.8) 50%, rgba(15, 17, 21, 0.95) 100%);
+      color: #9ca3af;
+      font-size: 13px;
+    }
+    .footer-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+    .footer-separator {
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Escolha um Módulo</h1>
+    <div class="modules-grid">
+      <div class="logo-container status-none" id="gemeosLogo">
+        <img src="../gemeos_logo.png" alt="Gemeos Checker" class="logo" />
+        <div class="status-badge" id="gemeosBadge" style="display: none;">Rodando</div>
+      </div>
+      <div class="logo-container status-none" id="saudeLogo">
+        <img src="../saude_logo.webp" alt="Saúde Checker" class="logo" />
+        <div class="status-badge" id="saudeBadge" style="display: none;">Rodando</div>
+      </div>
+    </div>
+    <div class="hint" id="hintText">Clique no módulo para iniciar</div>
+  </div>
+  <div class="footer">
+    <div class="footer-content">
+      <span id="projectName">Central do Arranca</span>
+      <span class="footer-separator">|</span>
+      <span id="version">v1.1.0</span>
+    </div>
+  </div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    const pkg = require('../package.json');
+    
+    // Atualiza nome e versão no rodapé
+    document.getElementById('projectName').textContent = 'Central do Arranca';
+    document.getElementById('version').textContent = 'v' + (pkg.version || '1.1.0');
+    
+    function updateModulesStatus(activeModules) {
+      const gemeosBadge = document.getElementById('gemeosBadge');
+      const saudeBadge = document.getElementById('saudeBadge');
+      const gemeosLogo = document.getElementById('gemeosLogo');
+      const saudeLogo = document.getElementById('saudeLogo');
+      const hintText = document.getElementById('hintText');
+      
+      const modules = {
+        'gemeos': { name: 'Gemeos', badge: gemeosBadge, logo: gemeosLogo },
+        'saude': { name: 'Saúde', badge: saudeBadge, logo: saudeLogo }
+      };
+      
+      let hasActiveModules = false;
+      
+      for (const [key, module] of Object.entries(modules)) {
+        const isActive = activeModules[key] && activeModules[key].window && !activeModules[key].window.isDestroyed();
+        const isRunning = isActive && (activeModules[key].isRunning || false);
+        
+        // Remove todas as classes de status
+        if (module.logo) {
+          module.logo.classList.remove('status-running', 'status-stopped', 'status-checking', 'status-none');
+        }
+        
+        // Badge só aparece se estiver EXECUTANDO
+        if (module.badge) {
+          module.badge.style.display = isRunning ? 'block' : 'none';
+        }
+        
+        // Adiciona aura baseado no status
+        if (module.logo) {
+          const isChecking = isActive && (activeModules[key].isChecking || false);
+          
+          if (isChecking) {
+            // Verificando/processando: aura laranja
+            module.logo.classList.add('status-checking');
+            hasActiveModules = true;
+          } else if (isRunning) {
+            // Rodando: aura verde
+            module.logo.classList.add('status-running');
+            hasActiveModules = true;
+          } else if (isActive) {
+            // Aberto mas parado: aura vermelha
+            module.logo.classList.add('status-stopped');
+            hasActiveModules = true;
+          } else {
+            // Não iniciado: sem aura
+            module.logo.classList.add('status-none');
+          }
+        }
+      }
+      
+      // Atualiza o texto de dica
+      if (hasActiveModules) {
+        hintText.textContent = 'Clique no módulo para abrir ou voltar ao checker';
+      } else {
+        hintText.textContent = 'Clique no módulo para iniciar';
+      }
+    }
+    
+    // Escuta atualizações de status dos módulos
+    ipcRenderer.on('update-modules-status', (event, activeModules) => {
+      updateModulesStatus(activeModules || {});
+    });
+    
+    // Carrega status inicial ao abrir
+    setTimeout(() => {
+      ipcRenderer.invoke('get-modules-status').then(activeModules => {
+        updateModulesStatus(activeModules || {});
+      }).catch(() => {
+        updateModulesStatus({});
+      });
+    }, 100);
+    
+    document.getElementById('gemeosLogo').addEventListener('click', () => {
+      ipcRenderer.send('module-selected', 'gemeos');
+    });
+    document.getElementById('saudeLogo').addEventListener('click', () => {
+      ipcRenderer.send('module-selected', 'saude');
+    });
+  </script>
+</body>
+</html>
+

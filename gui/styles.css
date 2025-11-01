@@ -95,25 +95,32 @@ body {
 .logo-container {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    justify-content: center;
+    flex-direction: column;
+    gap: 0;
 }
 
 .logo-image {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--border-radius-small);
-    object-fit: cover;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    object-fit: contain;
+    box-shadow: 0 6px 18px rgba(0,0,0,.35);
 }
 
 .logo-text h1 {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-heading);
     margin-bottom: var(--spacing-xs);
+    text-align: center;
 }
 
+/* Oculta textos abaixo da logo no cabeçalho da sidebar */
+.logo-text { display: none; }
+
 .version {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-muted);
     background: var(--bg-tertiary);
     padding: 2px 8px;
@@ -275,6 +282,18 @@ body {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none !important;
+}
+
+.btn-back-menu {
+    width: 100%;
+    margin-bottom: var(--spacing-md);
+    background: linear-gradient(135deg, #4a5568, #718096);
+    border: none;
+    font-weight: 500;
+}
+
+.btn-back-menu:hover {
+    background: linear-gradient(135deg, #718096, #a0aec0);
 }
 
 .test-group {

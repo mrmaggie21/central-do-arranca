@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carregando...</title>
+  <style>
+    body { margin:0; background:#0f1115; color:#e5e7eb; font-family: Inter, Arial, sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; }
+    .card { text-align:center; }
+    .logo { width:180px; height:180px; border-radius:50%; object-fit:cover; box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
+    h1 { font-weight:600; margin:16px 0 4px; font-size:22px; letter-spacing:.4px; }
+    .ver { color:#a1a1aa; font-size:12px; margin-bottom:2px; }
+    .by { color:#9ca3af; font-size:12px; margin-bottom:10px; }
+    .muted { color:#9ca3af; font-size:12px; }
+    .bar { width:420px; height:8px; background:#1f2430; border-radius:999px; margin:18px auto 6px; overflow:hidden; }
+    .fill { height:100%; width:0%; background:linear-gradient(90deg,#22d3ee,#a855f7); transition: width .2s ease; }
+    .log { width:440px; max-height:160px; overflow:auto; margin:10px auto 0; padding:8px 10px; background:#0c1015; border:1px solid #1f2430; border-radius:8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; color:#9ca3af; text-align:left; }
+    .log-line { margin:2px 0; white-space:nowrap; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="../logo.jpeg" alt="Logo" class="logo" />
+    <h1>Central do Arranca</h1>
+    <div class="ver" id="ver">v</div>
+    
+    <div class="bar"><div class="fill" id="fill"></div></div>
+    <div class="muted" id="status">Inicializando...</div>
+    <div class="log" id="log"></div>
+  </div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    const pkg = require('../package.json');
+    const fill = document.getElementById('fill');
+    const status = document.getElementById('status');
+    const logBox = document.getElementById('log');
+    document.getElementById('ver').textContent = 'v' + (pkg.version || '1.1.0');
+    function addLine(text){
+      const div=document.createElement('div');
+      div.className='log-line';
+      const ts=new Date().toLocaleTimeString('pt-BR',{hour12:false});
+      div.textContent = `[${ts}] ${text}`;
+      logBox.appendChild(div);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+    ipcRenderer.on('splash-start', () => {
+      status.textContent = 'Conectando à Webshare...';
+      fill.style.width = '10%';
+      addLine('Conectando à Webshare...');
+    });
+    ipcRenderer.on('splash-progress', (e, data) => {
+      const count = data?.count || 0;
+      status.textContent = `Carregando proxies da Webshare... ${count}`;
+      const pct = Math.max(10, Math.min(99, Math.floor((count / 1000) * 100)));
+      fill.style.width = pct + '%';
+      if (count % 50 === 0) addLine(`Recebidos ${count} proxies...`);
+    });
+    ipcRenderer.on('splash-log', (e, message) => {
+      addLine(message);
+    });
+  </script>
+</body>
+</html>
+
+
