@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central do Arranca - WorkBuscas Checker</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <div class="app-main">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <img src="../cpf_logo.jpg" alt="WorkBuscas Logo" class="logo-image">
+                    <div class="logo-text">
+                        <h1>Central do Arranca</h1>
+                        <span class="version">v1.1.0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <button id="backToMenuBtn" class="btn btn-secondary btn-back-menu">
+                        <span class="btn-icon">⬅️</span>
+                        <span class="btn-text">Voltar ao Menu</span>
+                    </button>
+                </div>
+                <div class="nav-section">
+                    <h3>⚙️ Configurações</h3>
+                    <div class="config-group">
+                        <div class="config-item">
+                            <label for="delay">Delay (segundos)</label>
+                            <input type="number" id="delay" min="1" max="60" value="2">
+                        </div>
+                        <div class="config-item">
+                            <label for="mode">Modo de execução</label>
+                            <select id="mode">
+                                <option value="continuous">Contínuo</option>
+                                <option value="limited">Limitado</option>
+                            </select>
+                        </div>
+                        <div class="config-item">
+                            <label for="batchSize">CPFs por lote</label>
+                            <input type="number" id="batchSize" min="1" max="100" value="10">
+                        </div>
+                        <div class="config-item" id="quantity-row" style="display: none;">
+                            <label for="quantity">Quantidade</label>
+                            <input type="number" id="quantity" min="1" max="1000" value="10">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>🎮 Controles</h3>
+                    <div class="button-group">
+                        <button id="startBtn" class="btn btn-primary">
+                            <span class="btn-icon">🚀</span>
+                            <span class="btn-text">Iniciar</span>
+                        </button>
+                        <button id="stopBtn" class="btn btn-danger" disabled>
+                            <span class="btn-icon">🛑</span>
+                            <span class="btn-text">Parar</span>
+                        </button>
+                        <button id="testBtn" class="btn btn-secondary">
+                            <span class="btn-icon">🎲</span>
+                            <span class="btn-text">Gerar CPF</span>
+                        </button>
+                        <button id="openFolderBtn" class="btn btn-info">
+                            <span class="btn-icon">📁</span>
+                            <span class="btn-text">Abrir Pasta</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>🧪 Teste Específico</h3>
+                    <div class="test-group">
+                        <input type="text" id="cpfTestInput" placeholder="000.000.000-00" maxlength="14">
+                        <button id="testSpecificBtn" class="btn btn-success">
+                            <span class="btn-icon">✅</span>
+                            <span class="btn-text">Testar</span>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <h2 id="headerTitle">WorkBuscas Checker</h2>
+                    <p id="headerSubtitle">Consulta completa de CPF</p>
+                </div>
+                <div class="header-right">
+                    <div class="status-indicator">
+                        <div class="status-dot" id="statusDot"></div>
+                        <span id="statusText">Aguardando</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Statistics Cards -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <h3 id="totalVerified">0</h3>
+                            <p>CPFs Verificados</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <h3 id="validFound">0</h3>
+                            <p>CPFs Encontrados</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-content">
+                            <h3 id="successRate">0.000%</h3>
+                            <p>Taxa de Sucesso</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-content">
+                            <h3 id="elapsedTime">0h 0m</h3>
+                            <p>Tempo Decorrido</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Current CPF Display -->
+            <section class="current-cpf-section">
+                <div class="cpf-container">
+                    <h3>Últimos CPFs Verificados</h3>
+                    <div class="cpf-table-container">
+                        <table class="cpf-table" id="cpfTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>CPF</th>
+                                    <th>Status</th>
+                                    <th>Horário</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cpfTableBody">
+                                <tr class="no-data">
+                                    <td colspan="4">Aguardando início da verificação...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Content Grid -->
+            <section class="content-grid">
+                <!-- Log Panel -->
+                <div class="log-panel">
+                    <div class="panel-header">
+                        <h3>📝 Log de Atividade</h3>
+                        <button id="clearLogBtn" class="btn btn-small">🗑️ Limpar</button>
+                    </div>
+                    <div class="log-content" id="logContent">
+                        <div class="log-entry info">
+                            <span class="timestamp">[SISTEMA]</span>
+                            <span class="message">WorkBuscas Checker iniciado. Configure os parâmetros e inicie a verificação.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Valid CPFs Panel -->
+                <div class="valid-cpfs-panel">
+                    <div class="panel-header">
+                        <h3>✅ CPFs Encontrados</h3>
+                        <span class="count-badge" id="validCount">0</span>
+                    </div>
+                    <div class="valid-cpfs-list" id="validCpfsList">
+                        <div class="no-results">
+                            <div class="no-results-icon">🔍</div>
+                            <p>Nenhum CPF encontrado ainda</p>
+                            <small>Os resultados aparecerão aqui automaticamente</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2025 Time do Arranca - Todos os direitos reservados</p>
+                <p class="footer-subtitle">Central do Arranca - WorkBuscas Checker v1.1.0</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>
+

@@ -3,6 +3,7 @@ const path = require('path');
 const CPFGenerator = require('../cpf-generator');
 const GemeosChecker = require('../modules/gemeos/checker');
 const SaudeChecker = require('../modules/saude/checker');
+const WorkBuscasChecker = require('../modules/workbuscas/checker');
 const Updater = require('../updater');
 const fs = require('fs-extra');
 
@@ -35,7 +36,16 @@ function createWindow(moduleName = 'gemeos') {
   });
 
   // Carrega a tela específica do módulo
-  const htmlFile = moduleName === 'gemeos' ? 'gemeos-checker.html' : 'saude-checker.html';
+  let htmlFile;
+  if (moduleName === 'gemeos') {
+    htmlFile = 'gemeos-checker.html';
+  } else if (moduleName === 'saude') {
+    htmlFile = 'saude-checker.html';
+  } else if (moduleName === 'workbuscas') {
+    htmlFile = 'workbuscas-checker.html';
+  } else {
+    htmlFile = 'gemeos-checker.html'; // fallback
+  }
   moduleWindow.loadFile(path.join(__dirname, htmlFile));
   moduleWindow.center();
   
@@ -241,7 +251,7 @@ app.whenReady().then(async () => {
     }
   }
   
-  // Inicializa checkers para ambos os módulos
+  // Inicializa checkers para todos os módulos
   checkers['gemeos'] = new GemeosChecker({
     delay: 5000,
     timeout: 15000,
@@ -249,6 +259,10 @@ app.whenReady().then(async () => {
   });
   checkers['saude'] = new SaudeChecker({
     delay: 5000,
+    timeout: 15000
+  });
+  checkers['workbuscas'] = new WorkBuscasChecker({
+    delay: 2000,
     timeout: 15000
   });
   
@@ -313,18 +327,23 @@ app.on('activate', () => {
 
 // IPC Handlers
 ipcMain.on('module-selected', async (event, moduleName) => {
-  if (moduleName === 'gemeos' || moduleName === 'saude') {
+  if (moduleName === 'gemeos' || moduleName === 'saude' || moduleName === 'workbuscas') {
     // Apenas cria a janela do checker se não existir ainda
     if (!activeModules[moduleName] || activeModules[moduleName].window.isDestroyed()) {
       const moduleWindow = createWindow(moduleName);
       
       moduleWindow.webContents.once('did-finish-load', () => {
-        moduleWindow.webContents.send('proxy-loading-start');
-        const moduleChecker = checkers[moduleName];
-        const total = moduleChecker?.proxies?.length || 0;
-        moduleWindow.webContents.send('proxy-loading-progress', { count: total });
-        moduleWindow.webContents.send('proxy-loading-complete', { total });
-        moduleWindow.webContents.send('log-message', { type: 'success', message: `✅ ${total} proxies carregados com sucesso!` });
+        if (moduleName === 'workbuscas') {
+          // WorkBuscas não usa proxies
+          moduleWindow.webContents.send('log-message', { type: 'success', message: `✅ WorkBuscas Checker pronto para uso!` });
+        } else {
+          moduleWindow.webContents.send('proxy-loading-start');
+          const moduleChecker = checkers[moduleName];
+          const total = moduleChecker?.proxies?.length || 0;
+          moduleWindow.webContents.send('proxy-loading-progress', { count: total });
+          moduleWindow.webContents.send('proxy-loading-complete', { total });
+          moduleWindow.webContents.send('log-message', { type: 'success', message: `✅ ${total} proxies carregados com sucesso!` });
+        }
       });
       
       // Fecha o menu de módulos após abrir o checker

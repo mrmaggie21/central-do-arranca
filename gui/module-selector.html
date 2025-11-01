@@ -220,6 +220,10 @@
         <img src="../saude_logo.webp" alt="Saúde Checker" class="logo" />
         <div class="status-badge" id="saudeBadge" style="display: none;">Rodando</div>
       </div>
+      <div class="logo-container status-none" id="workbuscasLogo">
+        <img src="../cpf_logo.jpg" alt="WorkBuscas Checker" class="logo" />
+        <div class="status-badge" id="workbuscasBadge" style="display: none;">Rodando</div>
+      </div>
     </div>
     <div class="hint" id="hintText">Clique no módulo para iniciar</div>
   </div>
@@ -245,9 +249,13 @@
       const saudeLogo = document.getElementById('saudeLogo');
       const hintText = document.getElementById('hintText');
       
+      const workbuscasBadge = document.getElementById('workbuscasBadge');
+      const workbuscasLogo = document.getElementById('workbuscasLogo');
+      
       const modules = {
         'gemeos': { name: 'Gemeos', badge: gemeosBadge, logo: gemeosLogo },
-        'saude': { name: 'Saúde', badge: saudeBadge, logo: saudeLogo }
+        'saude': { name: 'Saúde', badge: saudeBadge, logo: saudeLogo },
+        'workbuscas': { name: 'WorkBuscas', badge: workbuscasBadge, logo: workbuscasLogo }
       };
       
       let hasActiveModules = false;
@@ -316,6 +324,9 @@
     });
     document.getElementById('saudeLogo').addEventListener('click', () => {
       ipcRenderer.send('module-selected', 'saude');
+    });
+    document.getElementById('workbuscasLogo').addEventListener('click', () => {
+      ipcRenderer.send('module-selected', 'workbuscas');
     });
   </script>
 </body>
