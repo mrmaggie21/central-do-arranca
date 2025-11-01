@@ -515,8 +515,11 @@ class SaudeChecker {
       // Obtém proxy aleatório
       let proxy = null;
       let usedProxy = 'Sem Proxy';
+      let firstProxy = null; // Mantém a primeira proxy tentada para registro
+      
       if (this.proxies.length > 0) {
         proxy = this.getRandomProxy();
+        firstProxy = proxy;
         usedProxy = proxy ? `${proxy.host}:${proxy.port}` : 'Sem Proxy';
         console.log(`[Saúde] Usando proxy: ${usedProxy}`);
       } else {
@@ -535,6 +538,10 @@ class SaudeChecker {
           
           // Se sucesso, para o loop
           if (result.success || result.interpretation !== 'error') {
+            // Usa a proxy que foi realmente usada (ou primeira tentada se foi bem-sucedida)
+            if (proxy && result.proxy === 'Sem Proxy') {
+              result.proxy = `${proxy.host}:${proxy.port}`;
+            }
             break;
           }
           
@@ -544,15 +551,13 @@ class SaudeChecker {
             if (retryCount <= maxRetries && this.proxies.length > 0) {
               // Tenta com outro proxy
               proxy = this.getRandomProxy();
-              usedProxy = proxy ? `${proxy.host}:${proxy.port}` : 'Sem Proxy';
-              console.log(`[Saúde] Retentando com novo proxy: ${usedProxy} (tentativa ${retryCount}/${maxRetries})`);
+              console.log(`[Saúde] Retentando com novo proxy: ${proxy ? `${proxy.host}:${proxy.port}` : 'Sem Proxy'} (tentativa ${retryCount}/${maxRetries})`);
               await this.sleep(500);
               continue;
             } else if (retryCount === maxRetries && proxy) {
-              // Última tentativa sem proxy
+              // Última tentativa sem proxy, mas mantém a primeira proxy no registro
               console.log(`[Saúde] Última tentativa sem proxy`);
               proxy = null;
-              usedProxy = 'Sem Proxy';
               await this.sleep(500);
               continue;
             }
@@ -566,7 +571,6 @@ class SaudeChecker {
             if (retryCount === maxRetries) {
               console.log(`[Saúde] Erro persistente, tentando sem proxy`);
               proxy = null;
-              usedProxy = 'Sem Proxy';
               await this.sleep(500);
               continue;
             }
@@ -580,8 +584,19 @@ class SaudeChecker {
         result = await this.makeAPIRequest(cpf, email, phonenumber, null);
       }
       
-      // Atualiza proxy no resultado
-      result.proxy = usedProxy;
+      // Atualiza proxy no resultado - usa primeira proxy tentada ou a que foi usada
+      if (firstProxy && result.proxy === 'Sem Proxy') {
+        // Se primeira proxy foi tentada mas resultado diz "Sem Proxy", usa a primeira
+        result.proxy = `${firstProxy.host}:${firstProxy.port}`;
+        usedProxy = result.proxy;
+      } else if (result.proxy && result.proxy !== 'Sem Proxy') {
+        // Mantém o proxy que veio do resultado
+        usedProxy = result.proxy;
+      } else {
+        // Se realmente não usou proxy, mantém "Sem Proxy"
+        result.proxy = 'Sem Proxy';
+        usedProxy = 'Sem Proxy';
+      }
       
       // Atualiza contadores
       if (result.success) {
