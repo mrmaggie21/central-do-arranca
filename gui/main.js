@@ -127,14 +127,31 @@ app.whenReady().then(async () => {
   try {
     console.log('[Updater] Iniciando verificação de atualizações...');
     
-    // Garante que a splash está pronta
-    if (splashWindow && !splashWindow.isDestroyed()) {
-      // Mostra mensagem inicial
-      splashWindow.webContents.send('splash-log', '🔍 Verificando atualizações no GitHub...');
-      console.log('[Updater] Mensagem enviada para splash screen');
-    } else {
-      console.warn('[Updater] Splash window não está disponível');
+  // Verifica se há atualização pendente para aplicar
+  try {
+    const updateApplied = await updater.checkAndApplyPendingUpdate();
+    if (updateApplied && splashWindow && !splashWindow.isDestroyed()) {
+      splashWindow.webContents.send('splash-log', '✅ Atualização aplicada automaticamente!');
+      splashWindow.webContents.send('splash-log', '🔄 Reiniciando aplicativo...');
+      // Aguarda um pouco para mostrar a mensagem
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Reinicia o aplicativo
+      app.relaunch();
+      app.exit(0);
+      return;
     }
+  } catch (error) {
+    console.error('[Updater] Erro ao verificar atualização pendente:', error);
+  }
+
+  // Garante que a splash está pronta
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    // Mostra mensagem inicial
+    splashWindow.webContents.send('splash-log', '🔍 Verificando atualizações no GitHub...');
+    console.log('[Updater] Mensagem enviada para splash screen');
+  } else {
+    console.warn('[Updater] Splash window não está disponível');
+  }
     
     const updateInfo = await updater.checkForUpdates();
     console.log('[Updater] Resultado da verificação:', updateInfo);
@@ -179,9 +196,8 @@ app.whenReady().then(async () => {
             
             if (splashWindow && !splashWindow.isDestroyed()) {
               splashWindow.webContents.send('splash-log', '✅ Atualização extraída!');
-              splashWindow.webContents.send('splash-log', `📂 Arquivos em: ${extractedPath}`);
-              splashWindow.webContents.send('splash-log', '⚠️ Reinicie o aplicativo para aplicar a atualização.');
-              splashWindow.webContents.send('splash-log', '💡 Instruções: Substitua os arquivos da pasta do aplicativo pelos arquivos extraídos.');
+              splashWindow.webContents.send('splash-log', '🔄 Reinicie o aplicativo para aplicar automaticamente.');
+              splashWindow.webContents.send('splash-log', '💡 A atualização será aplicada automaticamente na próxima inicialização!');
               splashWindow.webContents.send('update-downloaded', { zipPath, extractedPath });
             }
           } catch (extractError) {

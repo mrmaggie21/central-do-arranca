@@ -222,12 +222,116 @@ class Updater {
       zip.extractAllTo(updateDir, true);
       
       console.log('[Updater] Atualização extraída para:', updateDir);
-      console.log('[Updater] AVISO: O usuário precisa reiniciar o aplicativo manualmente');
-      console.log('[Updater] Os arquivos estão em:', updateDir);
+      
+      // Marca que há atualização pendente
+      const pendingFile = path.join(updateDir, '..', 'pending-update.json');
+      fs.writeFileSync(pendingFile, JSON.stringify({
+        extractedPath: updateDir,
+        timestamp: Date.now()
+      }, null, 2));
+      
+      console.log('[Updater] Atualização será aplicada automaticamente ao reiniciar');
       
       return updateDir;
     } catch (error) {
       console.error('[Updater] Erro ao extrair atualização:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verifica e aplica atualização pendente
+   */
+  async checkAndApplyPendingUpdate() {
+    try {
+      const pendingFile = path.join(app.getPath('temp'), 'central-do-arranca-updates', 'pending-update.json');
+      
+      if (!fs.existsSync(pendingFile)) {
+        return false; // Nenhuma atualização pendente
+      }
+
+      const pendingInfo = JSON.parse(fs.readFileSync(pendingFile, 'utf8'));
+      const extractedPath = pendingInfo.extractedPath;
+
+      if (!fs.existsSync(extractedPath)) {
+        // Limpa arquivo pendente se pasta não existe mais
+        fs.unlinkSync(pendingFile);
+        return false;
+      }
+
+      console.log('[Updater] Aplicando atualização pendente...');
+      await this.installUpdate(extractedPath);
+
+      // Limpa arquivos temporários
+      fs.unlinkSync(pendingFile);
+      fs.removeSync(extractedPath);
+      fs.removeSync(path.join(app.getPath('temp'), 'central-do-arranca-updates'));
+
+      return true; // Atualização aplicada
+    } catch (error) {
+      console.error('[Updater] Erro ao aplicar atualização pendente:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Instala a atualização extraída
+   */
+  async installUpdate(extractedPath) {
+    try {
+      // Encontra a pasta do aplicativo dentro da pasta extraída
+      const extractedFiles = fs.readdirSync(extractedPath);
+      const appFolderName = extractedFiles.find(dir => {
+        const fullPath = path.join(extractedPath, dir);
+        return fs.statSync(fullPath).isDirectory() && dir.includes('Central do Arranca');
+      });
+
+      if (!appFolderName) {
+        throw new Error('Pasta do aplicativo não encontrada na atualização extraída');
+      }
+
+      const sourcePath = path.join(extractedPath, appFolderName, 'resources', 'app');
+      const appPath = app.getAppPath(); // Caminho do aplicativo atual
+      const targetPath = appPath;
+
+      console.log('[Updater] Instalando atualização...');
+      console.log(`   Origem: ${sourcePath}`);
+      console.log(`   Destino: ${targetPath}`);
+
+      // Lista de arquivos/pastas a manter
+      const keepItems = ['node_modules', '.git', '.cache', 'lista'];
+
+      // Copia arquivos, exceto os que devem ser mantidos
+      const filesToCopy = fs.readdirSync(sourcePath);
+      
+      for (const file of filesToCopy) {
+        if (keepItems.includes(file)) {
+          continue; // Pula arquivos que devem ser mantidos
+        }
+
+        const sourceFile = path.join(sourcePath, file);
+        const destFile = path.join(targetPath, file);
+
+        try {
+          if (fs.existsSync(destFile)) {
+            const stat = fs.statSync(destFile);
+            if (stat.isDirectory()) {
+              fs.removeSync(destFile);
+            } else {
+              fs.unlinkSync(destFile);
+            }
+          }
+          fs.copySync(sourceFile, destFile);
+          console.log(`   ✅ ${file}`);
+        } catch (error) {
+          console.warn(`   ⚠️  Erro ao atualizar ${file}:`, error.message);
+        }
+      }
+
+      console.log('[Updater] Atualização instalada com sucesso!');
+      return true;
+    } catch (error) {
+      console.error('[Updater] Erro ao instalar atualização:', error);
       throw error;
     }
   }
