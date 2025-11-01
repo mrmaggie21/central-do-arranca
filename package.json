@@ -11,7 +11,8 @@
     "test-proxy": "node test-proxy.js",
     "test-gui": "node test-gui.js",
     "demo": "node demo.js",
-    "pack": "electron-packager . \"Central do Arranca\" --platform=win32 --arch=x64 --out=dist --overwrite --ignore=dist --ignore=.git --ignore=BUILD-EXE.md --ignore=PROJECT-SUMMARY.md --ignore=README.md --ignore=executar.bat --ignore=validado-*.txt --no-asar --prune=false"
+    "pack": "electron-packager . \"Central do Arranca\" --platform=win32 --arch=x64 --out=dist --overwrite --ignore=dist --ignore=.git --ignore=BUILD-EXE.md --ignore=PROJECT-SUMMARY.md --ignore=README.md --ignore=executar.bat --ignore=validado-*.txt --no-asar --prune=false",
+    "release": "npm run pack && node create-release-zip.js"
   },
   "keywords": [
     "cpf",
