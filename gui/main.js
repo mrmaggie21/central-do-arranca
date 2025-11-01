@@ -893,6 +893,19 @@ async function startContinuousChecking(config) {
     results.forEach(result => {
       moduleStats.totalVerified++;
       
+      // Trata CPFs com status "skipped" (não encontrou email e telefone no WorkBuscas)
+      if (result.interpretation === 'skipped') {
+        if (currentModuleWindow && !currentModuleWindow.isDestroyed()) {
+          currentModuleWindow.webContents.send('cpf-result', {
+            cpf: result.cpf,
+            status: 'not_registered',
+            message: 'NÃO TESTADO (dados insuficientes)',
+            proxy: result.proxy || 'N/A'
+          });
+        }
+        return; // Pula este CPF
+      }
+      
       if (result.success) {
         const status = result.interpretation === 'registered' ? 'registered' : 'not_registered';
         if (status === 'registered') {
