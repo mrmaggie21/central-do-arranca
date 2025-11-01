@@ -322,7 +322,7 @@ class SaudeChecker {
   /**
    * Faz requisição à API Saúde Diária
    */
-  async makeAPIRequest(cpf, email, phonenumber) {
+  async makeAPIRequest(cpf, email, phonenumber, proxy = null) {
     try {
       const payload = {
         email: email || 'email@exemplo.com',
@@ -348,6 +348,25 @@ class SaudeChecker {
           return status >= 200 && status < 500;
         }
       };
+      
+      // Configura proxy se fornecido
+      if (proxy) {
+        if (HttpsProxyAgent) {
+          const authPart = proxy.auth && proxy.auth.username && proxy.auth.password
+            ? `${encodeURIComponent(proxy.auth.username)}:${encodeURIComponent(proxy.auth.password)}@`
+            : '';
+          const proxyUrl = `http://${authPart}${proxy.host}:${proxy.port}`;
+          axiosConfig.proxy = false; // usar agent em vez do objeto proxy
+          axiosConfig.httpsAgent = new HttpsProxyAgent.HttpsProxyAgent(proxyUrl);
+        } else {
+          axiosConfig.proxy = {
+            host: proxy.host,
+            port: proxy.port,
+            auth: proxy.auth,
+            protocol: 'http'
+          };
+        }
+      }
       
       const response = await axios(axiosConfig);
       const status = response.status;
@@ -378,6 +397,7 @@ class SaudeChecker {
         interpretation: interpretation,
         response: responseData,
         payload: payload,
+        proxy: proxy ? `${proxy.host}:${proxy.port}` : 'Sem Proxy',
         timestamp: new Date().toISOString()
       };
       
@@ -389,6 +409,7 @@ class SaudeChecker {
         status: error.response?.status || 0,
         error: error.message,
         interpretation: 'error',
+        proxy: proxy ? `${proxy.host}:${proxy.port}` : 'Sem Proxy',
         timestamp: new Date().toISOString()
       };
     }
@@ -440,9 +461,76 @@ class SaudeChecker {
       
       console.log(`[Saúde] Dados obtidos - Email: ${email}, Phone: ${phonenumber}`);
       
-      // Faz requisição à API Saúde Diária
+      // Obtém proxy aleatório
+      let proxy = null;
+      let usedProxy = 'Sem Proxy';
+      if (this.proxies.length > 0) {
+        proxy = this.getRandomProxy();
+        usedProxy = proxy ? `${proxy.host}:${proxy.port}` : 'Sem Proxy';
+        console.log(`[Saúde] Usando proxy: ${usedProxy}`);
+      } else {
+        console.log(`[Saúde] Nenhum proxy disponível, fazendo requisição direta`);
+      }
+      
+      // Faz requisição à API Saúde Diária (com retry e fallback sem proxy)
       console.log(`[Saúde] Fazendo requisição à API Saúde Diária...`);
-      const result = await this.makeAPIRequest(cpf, email, phonenumber);
+      let result = null;
+      let retryCount = 0;
+      const maxRetries = 2;
+      
+      while (retryCount <= maxRetries) {
+        try {
+          result = await this.makeAPIRequest(cpf, email, phonenumber, proxy);
+          
+          // Se sucesso, para o loop
+          if (result.success || result.interpretation !== 'error') {
+            break;
+          }
+          
+          // Se erro de rede/timeout, tenta com outro proxy ou sem proxy
+          if (result.error && (result.error.includes('timeout') || result.error.includes('ECONNREFUSED') || result.error.includes('network'))) {
+            retryCount++;
+            if (retryCount <= maxRetries && this.proxies.length > 0) {
+              // Tenta com outro proxy
+              proxy = this.getRandomProxy();
+              usedProxy = proxy ? `${proxy.host}:${proxy.port}` : 'Sem Proxy';
+              console.log(`[Saúde] Retentando com novo proxy: ${usedProxy} (tentativa ${retryCount}/${maxRetries})`);
+              await this.sleep(500);
+              continue;
+            } else if (retryCount === maxRetries && proxy) {
+              // Última tentativa sem proxy
+              console.log(`[Saúde] Última tentativa sem proxy`);
+              proxy = null;
+              usedProxy = 'Sem Proxy';
+              await this.sleep(500);
+              continue;
+            }
+          }
+          
+          break;
+        } catch (error) {
+          retryCount++;
+          if (retryCount <= maxRetries && proxy) {
+            // Tenta sem proxy na última tentativa
+            if (retryCount === maxRetries) {
+              console.log(`[Saúde] Erro persistente, tentando sem proxy`);
+              proxy = null;
+              usedProxy = 'Sem Proxy';
+              await this.sleep(500);
+              continue;
+            }
+          }
+          throw error;
+        }
+      }
+      
+      // Se ainda não tem resultado, faz sem proxy
+      if (!result) {
+        result = await this.makeAPIRequest(cpf, email, phonenumber, null);
+      }
+      
+      // Atualiza proxy no resultado
+      result.proxy = usedProxy;
       
       // Atualiza contadores
       if (result.success) {
