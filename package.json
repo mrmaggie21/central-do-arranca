@@ -1,7 +1,7 @@
 {
-  "name": "gemeos-cpf-checker",
-  "version": "1.0.0",
-  "description": "Checker automático de CPF para a API da Gemeos Brasil",
+  "name": "central-do-arranca",
+  "version": "1.1.0",
+  "description": "Central do Arranca - Checker automático de CPF",
   "main": "gui/main.js",
   "scripts": {
     "start": "node continuous.js",
@@ -11,13 +11,14 @@
     "test-proxy": "node test-proxy.js",
     "test-gui": "node test-gui.js",
     "demo": "node demo.js",
-    "pack": "electron-packager . \"Gemeos CPF Checker\" --platform=win32 --arch=x64 --out=dist --overwrite --ignore=dist --ignore=.git --ignore=BUILD-EXE.md --ignore=PROJECT-SUMMARY.md --ignore=README.md --ignore=executar.bat --ignore=validado-*.txt --no-asar --prune=false"
+    "pack": "electron-packager . \"Central do Arranca\" --platform=win32 --arch=x64 --out=dist --overwrite --ignore=dist --ignore=.git --ignore=BUILD-EXE.md --ignore=PROJECT-SUMMARY.md --ignore=README.md --ignore=executar.bat --ignore=validado-*.txt --no-asar --prune=false"
   },
   "keywords": [
     "cpf",
     "checker",
+    "central-do-arranca",
     "gemeos",
-    "brasil",
+    "saude-diaria",
     "api",
     "electron",
     "gui"
@@ -38,10 +39,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mrrobot/gemeos-checker.git"
+    "url": "https://github.com/mrmaggie21/central-do-arranca.git"
   },
   "bugs": {
-    "url": "https://github.com/mrrobot/gemeos-checker/issues"
+    "url": "https://github.com/mrmaggie21/central-do-arranca/issues"
   },
-  "homepage": "https://github.com/mrrobot/gemeos-checker#readme"
+  "homepage": "https://github.com/mrmaggie21/central-do-arranca#readme"
 }
