@@ -94,10 +94,12 @@ class WorkBuscasChecker {
 
       const data = response.data;
       
-      // Verifica se há dados válidos
-      const hasData = this.hasValidData(data);
+      // Log para debug
+      console.log('[WorkBuscas] Resposta da API para CPF', cpf, ':', JSON.stringify(data, null, 2));
       
-      if (!hasData) {
+      // Verifica se a resposta é válida (não vazia e não é erro)
+      if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
+        console.log('[WorkBuscas] Resposta vazia ou inválida para CPF', cpf);
         this.notFoundCount++;
         return {
           cpf: cpf,
@@ -108,9 +110,49 @@ class WorkBuscasChecker {
           timestamp: new Date().toISOString()
         };
       }
+      
+      // Verifica se há dados válidos
+      const hasData = this.hasValidData(data);
+      console.log('[WorkBuscas] CPF', cpf, '- hasData:', hasData);
+      
+      if (!hasData) {
+        // Tenta extrair dados mesmo assim, pode ter estrutura diferente
+        const extractedData = this.extractData(data);
+        const hasExtractedData = Object.values(extractedData).some(v => {
+          if (Array.isArray(v)) return v.length > 0;
+          return v !== null && v !== undefined && v !== '';
+        });
+        
+        console.log('[WorkBuscas] CPF', cpf, '- hasExtractedData:', hasExtractedData);
+        console.log('[WorkBuscas] Extracted data:', JSON.stringify(extractedData, null, 2));
+        
+        if (!hasExtractedData) {
+          this.notFoundCount++;
+          return {
+            cpf: cpf,
+            success: true,
+            status: 200,
+            interpretation: 'not_found',
+            message: 'CPF não encontrado na base de dados',
+            timestamp: new Date().toISOString()
+          };
+        }
+        
+        // Tem dados extraídos, então encontrou
+        this.foundCount++;
+        return {
+          cpf: cpf,
+          success: true,
+          status: 200,
+          interpretation: 'found',
+          data: extractedData,
+          timestamp: new Date().toISOString()
+        };
+      }
 
       // Extrai todos os dados disponíveis
       const extractedData = this.extractData(data);
+      console.log('[WorkBuscas] CPF', cpf, '- Dados extraídos:', JSON.stringify(extractedData, null, 2));
       
       this.foundCount++;
       return {
@@ -145,11 +187,17 @@ class WorkBuscasChecker {
     // Verifica se há pelo menos um campo com dados
     const hasTelefones = data.telefones && Array.isArray(data.telefones) && data.telefones.length > 0;
     const hasEmails = data.emails && Array.isArray(data.emails) && data.emails.length > 0;
-    const hasDadosBasicos = data.DadosBasicos && Object.keys(data.DadosBasicos).length > 0;
-    const hasDadosEconomicos = data.DadosEconomicos && Object.keys(data.DadosEconomicos).length > 0;
-    const hasRegistroGeral = data.registroGeral && Object.keys(data.registroGeral).length > 0;
+    const hasDadosBasicos = data.DadosBasicos && typeof data.DadosBasicos === 'object' && Object.keys(data.DadosBasicos).length > 0;
+    const hasDadosEconomicos = data.DadosEconomicos && typeof data.DadosEconomicos === 'object' && Object.keys(data.DadosEconomicos).length > 0;
+    const hasRegistroGeral = data.registroGeral && typeof data.registroGeral === 'object' && data.registroGeral !== null && Object.keys(data.registroGeral).length > 0;
+    
+    // Verifica campos diretos também (pode ter estrutura diferente)
+    const hasNome = data.nome && typeof data.nome === 'string' && data.nome.trim().length > 0;
+    const hasTelefone = data.telefone && typeof data.telefone === 'string' && data.telefone.trim().length > 0;
+    const hasEmail = data.email && typeof data.email === 'string' && data.email.trim().length > 0;
+    const hasRg = data.rg || (data.rgNumero && typeof data.rgNumero === 'string' && data.rgNumero.trim().length > 0);
 
-    return hasTelefones || hasEmails || hasDadosBasicos || hasDadosEconomicos || hasRegistroGeral;
+    return hasTelefones || hasEmails || hasDadosBasicos || hasDadosEconomicos || hasRegistroGeral || hasNome || hasTelefone || hasEmail || hasRg;
   }
 
   /**
@@ -223,6 +271,17 @@ class WorkBuscasChecker {
         extracted.dataNascimento = data.DadosBasicos.dataNascimento;
       }
     }
+    
+    // Tenta campos diretos também (caso a estrutura seja diferente)
+    if (!extracted.nome && data.nome) {
+      extracted.nome = data.nome;
+    }
+    if (!extracted.dataNascimento && data.dataNascimento) {
+      extracted.dataNascimento = data.dataNascimento;
+    }
+    if (!extracted.nomeMae && data.nomeMae) {
+      extracted.nomeMae = data.nomeMae;
+    }
 
     // RG (Registro Geral)
     if (data.registroGeral && typeof data.registroGeral === 'object' && data.registroGeral !== null) {
@@ -239,8 +298,31 @@ class WorkBuscasChecker {
         extracted.rgUfEmissao = data.registroGeral.ufEmissao;
       }
     }
+    
+    // Tenta campos diretos de RG também
+    if (!extracted.rg && data.rg) {
+      extracted.rg = data.rg;
+    }
+    if (!extracted.rg && data.rgNumero) {
+      extracted.rg = data.rgNumero;
+    }
+    if (!extracted.rgDataEmissao && data.rgDataEmissao) {
+      extracted.rgDataEmissao = data.rgDataEmissao;
+    }
+    if (!extracted.rgOrgaoEmissor && data.rgOrgaoEmissor) {
+      extracted.rgOrgaoEmissor = data.rgOrgaoEmissor;
+    }
+    if (!extracted.rgUfEmissao && data.rgUfEmissao) {
+      extracted.rgUfEmissao = data.rgUfEmissao;
+    }
+    
+    // Verifica se pelo menos algum dado foi extraído
+    const hasAnyData = Object.values(extracted).some(v => {
+      if (Array.isArray(v)) return v.length > 0;
+      return v !== null && v !== undefined && v !== '';
+    });
 
-    return extracted;
+    return hasAnyData ? extracted : null;
   }
 
   /**
