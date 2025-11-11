@@ -1,0 +1,25 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 19:40:52
+🔢 CPF: 37368508591
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): b***@outlook.com
+📱 Final do Telefone: 6390
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: BENEVALDO DOS SANTOS
+   👩 Nome da Mãe: MARIA VIEIRA DOS SANTOS
+   📅 Data de Nascimento: 13/01/1960
+   📱 Telefones (2):
+      1. 1124983230 - TELEFONE RESIDENCIAL
+      2. 11930646390 (NO) - NO
+   💰 Renda: R$ 1568,33
+   📈 Score CSB: 581
+   🆔 RG: 3906272 - SSP - SECRETARIA DE SEGURANCA PUBLICA (SP)
+      📅 Data de Emissão do RG: 1984-10-31
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

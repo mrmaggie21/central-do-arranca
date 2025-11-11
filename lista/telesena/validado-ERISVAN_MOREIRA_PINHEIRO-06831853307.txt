@@ -1,0 +1,25 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 18:47:20
+🔢 CPF: 06831853307
+✅ Status: CADASTRADO
+🧪 Tipo: VERIFICAÇÃO AUTOMÁTICA
+
+📝 Tipo de Cadastro: Cadastrado
+📧 Email (mascarado): e***@gmail.com
+📱 Final do Telefone: 1579
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: ERISVAN MOREIRA PINHEIRO
+   👩 Nome da Mãe: ANTONIA VICENCIA MOREIRA DE LIMA
+   📅 Data de Nascimento: 28/09/1996
+   📱 Telefones (1):
+      1. 85986861579 - TELEFONE MÓVEL
+   📧 Email: erisvanpinheiro12@gmail.com
+   💰 Renda: R$ 675,35
+   📈 Score CSB: 697
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

@@ -1,0 +1,129 @@
+{
+  "app": {
+    "name": "Central do Arranca",
+    "version": "1.5.1",
+    "author": "Mr.Robot"
+  },
+  "apis": {
+    "gemeos": {
+      "baseUrl": "https://dashboard.gemeosbrasil.me/api/ver-numeros",
+      "timeout": 15000,
+      "maxRetries": 3,
+      "rateLimit": {
+        "enabled": true,
+        "maxRequestsPerMinute": 60,
+        "retryAfterSeconds": 60
+      }
+    },
+    "saude": {
+      "baseUrl": "https://api-saudediaria.entregadigital.app.br/api/v1/app/resetpassword",
+      "timeout": 15000,
+      "maxRetries": 3,
+      "rateLimit": {
+        "enabled": true,
+        "maxRequestsPerMinute": 60,
+        "retryAfterSeconds": 60
+      }
+    },
+    "workbuscas": {
+      "baseUrl": "https://completa.workbuscas.com/api",
+      "timeout": 15000,
+      "rateLimit": {
+        "enabled": true,
+        "maxRequestsPerMinute": 60,
+        "retryAfterSeconds": 60
+      }
+    },
+    "telesena": {
+      "baseUrl": "https://api.telesena.com.br/api/v2/customer/password-recovery/options",
+      "timeout": 15000,
+      "maxRetries": 3,
+      "rateLimit": {
+        "enabled": true,
+        "maxRequestsPerMinute": 60,
+        "retryAfterSeconds": 60
+      }
+    }
+  },
+  "proxies": {
+    "webshare": {
+      "apiUrl": "https://proxy.webshare.io/api/v2/proxy/list/",
+      "maxProxies": 1000,
+      "pageSize": 25,
+      "cacheExpiryHours": 24,
+      "testTimeout": 3000,
+      "testBatchSize": 10,
+      "rotate": {
+        "enabled": true,
+        "username": "qkwskesg-rotate",
+        "password": "8f5e27vxgc2y",
+        "host": "p.webshare.io",
+        "port": 80,
+        "protocol": "socks5"
+      }
+    },
+    "useForeignOnly": false,
+    "filterByCountry": false,
+    "skipTestOnLoad": true
+  },
+  "checkers": {
+    "gemeos": {
+      "batchSize": 20,
+      "delay": 2000,
+      "timeout": 10000
+    },
+    "saude": {
+      "batchSize": 20,
+      "delay": 2000,
+      "timeout": 10000
+    },
+    "workbuscas": {
+      "delay": 2000,
+      "timeout": 15000
+    },
+    "telesena": {
+      "batchSize": 20,
+      "delay": 2000,
+      "timeout": 10000
+    }
+  },
+  "security": {
+    "ssl": {
+      "rejectUnauthorized": false,
+      "secureProtocol": "TLSv1_2_method",
+      "minTlsVersion": "1.2"
+    },
+    "userAgents": {
+      "rotationEnabled": true,
+      "poolSize": 15
+    }
+  },
+  "logging": {
+    "enabled": true,
+    "level": "info",
+    "format": "json",
+    "output": {
+      "console": true,
+      "file": true,
+      "filePath": "./logs/app.log",
+      "maxFileSize": "10MB",
+      "maxFiles": 5
+    }
+  },
+  "metrics": {
+    "enabled": true,
+    "collectionInterval": 5000,
+    "saveInterval": 60000,
+    "outputPath": "./logs/metrics.json"
+  },
+  "cache": {
+    "enabled": true,
+    "baseDir": ".cache",
+    "proxies": {
+      "gemeos": "proxies-gemeos.json",
+      "saude": "proxies-saude.json",
+      "telesena": "proxies-telesena.json"
+    }
+  }
+}
+

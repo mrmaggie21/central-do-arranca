@@ -52,14 +52,16 @@
     ipcRenderer.on('splash-start', () => {
       status.textContent = 'Conectando à Webshare...';
       fill.style.width = '10%';
-      addLine('Conectando à Webshare...');
+      // Não adiciona log aqui - será adicionado pelo main.js via splash-log
     });
     ipcRenderer.on('splash-progress', (e, data) => {
       const count = data?.count || 0;
-      status.textContent = `Carregando proxies da Webshare... ${count}`;
+      status.textContent = `Carregando proxies... ${count}/1000`;
       const pct = Math.max(10, Math.min(99, Math.floor((count / 1000) * 100)));
       fill.style.width = pct + '%';
-      if (count % 50 === 0) addLine(`Recebidos ${count} proxies...`);
+      if (count > 0 && (count % 50 === 0 || count === 25 || count === 1)) {
+        addLine(`Recebidos ${count} proxies...`);
+      }
     });
     ipcRenderer.on('splash-log', (e, message) => {
       addLine(message);

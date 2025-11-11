@@ -156,10 +156,8 @@ class SaudeChecker {
     try {
       const cacheData = fs.readJsonSync(this.cacheFile);
       this.proxies = cacheData.proxies || [];
-      console.log(`📦 ${this.proxies.length} proxies carregados do cache (Saúde)`);
       return this.proxies;
     } catch (error) {
-      console.log('❌ Erro ao carregar cache:', error.message);
       return [];
     }
   }
@@ -176,9 +174,8 @@ class SaudeChecker {
         count: proxies.length
       };
       await fs.writeJson(this.cacheFile, cacheData, { spaces: 2 });
-      console.log(`💾 ${proxies.length} proxies salvos no cache (Saúde)`);
     } catch (error) {
-      console.log('❌ Erro ao salvar cache:', error.message);
+      // Silencioso - erro ao salvar cache não é crítico
     }
   }
 
@@ -191,71 +188,216 @@ class SaudeChecker {
       const cachedProxies = this.loadFromCache();
       if (cachedProxies.length > 0) {
         this.proxies = cachedProxies;
+        // Quando carrega do cache, retorna IMEDIATAMENTE sem testar
+        // Cache já contém proxies válidos
+        if (progressCallback && cachedProxies.length > 0) {
+          const total = cachedProxies.length;
+          // Envia progresso UMA VEZ só e retorna
+          progressCallback(total);
+        }
         return this.proxies;
       }
     }
-    
-    console.log('🔄 [Saúde] Carregando proxies da Webshare...');
     
     try {
       const allProxies = [];
       let page = 1;
       const pageSize = 25;
+      let retryCount = 0;
+      const maxRetries = 3;
       
       while (true) {
-        const response = await axios.get(this.proxyApiUrl, {
-          params: {
-            mode: 'direct',
-            page: page,
-            page_size: pageSize
-          },
-          headers: {
-            'Authorization': `Token ${this.proxyApiToken}`
-          },
-          timeout: 10000,
-          ...this.getSSLConfig()
-        });
-        
-        const proxies = response.data.results || [];
-        if (proxies.length === 0) break;
-        
-        allProxies.push(...proxies);
-        
-        if (progressCallback) {
-          progressCallback(allProxies.length);
+        try {
+          const response = await axios.get(this.proxyApiUrl, {
+            params: {
+              mode: 'direct',
+              page: page,
+              page_size: pageSize
+            },
+            headers: {
+              'Authorization': `Token ${this.proxyApiToken}`
+            },
+            timeout: 10000,
+            ...this.getSSLConfig()
+          });
+          
+          const proxies = response.data.results || [];
+          if (proxies.length === 0) break;
+          
+          allProxies.push(...proxies);
+          
+          if (progressCallback) {
+            progressCallback(allProxies.length);
+          }
+          
+          page++;
+          retryCount = 0; // Reset retry count on success
+          
+          if (allProxies.length >= 1000) break;
+          
+          // Delay maior para evitar rate limit (500ms ao invés de 200ms)
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+        } catch (error) {
+          // Trata rate limit (429)
+          if (error.response && error.response.status === 429) {
+            const retryAfter = parseInt(error.response.headers['retry-after'] || '5');
+            
+            // Se já tem alguns proxies carregados, para e usa eles (não espera muito)
+            if (allProxies.length >= 100) {
+              console.log(`⚠️ [Saúde] Rate limit (429). Já tem ${allProxies.length} proxies, usando esses e parando aqui.`);
+              break; // Usa o que já tem
+            }
+            
+            // Se der rate limit na primeira página, tenta usar cache imediatamente
+            if (page === 1 && allProxies.length === 0) {
+              console.log(`⚠️ [Saúde] Rate limit (429) na primeira página. Tentando usar cache...`);
+              const cachedProxies = this.loadFromCache();
+              if (cachedProxies.length > 0) {
+                console.log(`📦 [Saúde] Usando ${cachedProxies.length} proxies do cache (rate limit detectado)`);
+                this.proxies = cachedProxies;
+                if (progressCallback) {
+                  progressCallback(cachedProxies.length);
+                }
+                return this.proxies; // Retorna imediatamente com cache
+              }
+            }
+            
+            if (retryCount < maxRetries) {
+              retryCount++;
+              console.log(`⚠️ [Saúde] Rate limit (429). Aguardando ${retryAfter}s antes de tentar novamente... (tentativa ${retryCount}/${maxRetries})`);
+              
+              // Aguarda o tempo indicado
+              await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+              continue; // Tenta novamente a mesma página
+            } else {
+              console.log(`❌ [Saúde] Rate limit persistente após ${maxRetries} tentativas. Usando proxies já carregados ou cache: ${allProxies.length}`);
+              // Tenta cache como último recurso
+              if (allProxies.length === 0) {
+                const cachedProxies = this.loadFromCache();
+                if (cachedProxies.length > 0) {
+                  console.log(`📦 [Saúde] Usando ${cachedProxies.length} proxies do cache após ${maxRetries} tentativas falhadas`);
+                  this.proxies = cachedProxies;
+                  if (progressCallback) {
+                    progressCallback(cachedProxies.length);
+                  }
+                  return this.proxies;
+                }
+              }
+              break; // Para e usa o que já tem (mesmo se for 0)
+            }
+          } else {
+            // Outro erro - propaga
+            throw error;
+          }
         }
-        
-        page++;
-        
-        if (allProxies.length >= 1000) break;
-        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      
+      // Se não conseguiu carregar pelo menos alguns proxies, usa cache se tiver
+      if (allProxies.length === 0) {
+        console.log('⚠️ [Saúde] Nenhum proxy carregado da API. Tentando usar cache...');
+        const cachedProxies = this.loadFromCache();
+        if (cachedProxies.length > 0) {
+          console.log(`📦 [Saúde] Usando ${cachedProxies.length} proxies do cache`);
+          this.proxies = cachedProxies;
+          if (progressCallback) {
+            progressCallback(cachedProxies.length);
+          }
+          return this.proxies;
+        }
       }
       
       this.proxies = allProxies.slice(0, 1000);
       
-      // Testa proxies antes de salvar no cache (igual ao Gemeos)
-      const validProxies = await this.testProxies(this.proxies, progressCallback);
+      // Verifica se deve pular teste (igual Gemeos)
+      const configLoader = require('../../config-loader');
+      const skipTestConfig = configLoader.get('proxies.skipTestOnLoad');
+      const skipTestEnv = process.env.SKIP_PROXY_TEST === 'true';
+      const skipProxyTest = skipTestConfig === true || skipTestEnv === true;
       
-      if (validProxies.length === 0) {
-        console.log('⚠️ [Saúde] Nenhum proxy válido encontrado, usando todos os proxies');
-        this.proxies = this.proxies.slice(0, 1000);
+      console.log('[DEBUG] [Saúde] Configuração de teste:');
+      console.log('  - config.proxies.skipTestOnLoad:', skipTestConfig);
+      console.log('  - env.SKIP_PROXY_TEST:', process.env.SKIP_PROXY_TEST);
+      console.log('  - skipProxyTest (resultado):', skipProxyTest);
+      
+      // Se deve pular teste OU se teve rate limit (já tem proxies suficientes)
+      if (skipProxyTest) {
+        console.log(`⚡ [Saúde] Teste de proxies PULADO (configurado). Usando ${this.proxies.length} proxies sem testar.`);
+      } else if (this.proxies.length < 100) {
+        console.log(`⚠️ [Saúde] Apenas ${this.proxies.length} proxies carregados. Pulando teste e usando direto.`);
       } else {
-        this.proxies = validProxies.slice(0, 1000);
+        // Testa proxies antes de salvar no cache (igual ao Gemeos)
+        // NÃO passa progressCallback para testProxies - evita progresso duplicado
+        console.log(`🧪 [Saúde] Testando ${this.proxies.length} proxies...`);
+        
+        // Limita teste a no máximo 100 proxies ou 30 segundos para não travar
+        const maxTestProxies = Math.min(100, this.proxies.length);
+        const proxiesToTest = this.proxies.slice(0, maxTestProxies);
+        console.log(`🧪 [Saúde] Testando apenas amostra de ${maxTestProxies} proxies (para não travar)...`);
+        
+        try {
+          // Timeout de 30 segundos para o teste completo
+          const testPromise = this.testProxies(proxiesToTest, null);
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Teste de proxies excedeu 30 segundos')), 30000)
+          );
+          
+          const validProxies = await Promise.race([testPromise, timeoutPromise]);
+          
+          if (validProxies.length === 0) {
+            console.log('⚠️ [Saúde] Nenhum proxy válido encontrado na amostra, usando todos os proxies sem filtrar');
+            this.proxies = this.proxies.slice(0, 1000);
+          } else {
+            const validRate = validProxies.length / maxTestProxies;
+            console.log(`📊 [Saúde] Taxa de validade: ${(validRate * 100).toFixed(1)}% (${validProxies.length}/${maxTestProxies})`);
+            // Usa todos os proxies mesmo assim (amostra pequena)
+            this.proxies = this.proxies.slice(0, 1000);
+          }
+        } catch (error) {
+          console.log(`⚠️ [Saúde] Erro ou timeout ao testar proxies: ${error.message}. Usando todos sem filtrar.`);
+          // Em caso de erro no teste, usa todos os proxies
+          this.proxies = this.proxies.slice(0, 1000);
+        }
       }
       
       // Salva no cache
       await this.saveToCache(this.proxies);
       
+      // Notifica progressCallback final com total de proxies válidos (UMA VEZ)
+      if (progressCallback) {
+        progressCallback(this.proxies.length);
+      }
+      
       return this.proxies;
       
     } catch (error) {
-      console.log('❌ [Saúde] Erro ao carregar proxies:', error.message);
+      // Trata rate limit (429) também no catch externo
+      if (error.response && error.response.status === 429) {
+        console.log('⚠️ [Saúde] Rate limit (429) ao carregar proxies. Usando cache se disponível...');
+        
+        // Tenta usar cache mesmo expirado
+        const cachedProxies = this.loadFromCache();
+        if (cachedProxies.length > 0) {
+          console.log(`📦 [Saúde] Usando ${cachedProxies.length} proxies do cache expirado como fallback`);
+          this.proxies = cachedProxies;
+          if (progressCallback) {
+            progressCallback(cachedProxies.length);
+          }
+          return this.proxies;
+        }
+        
+        // Se não tem cache, propaga erro
+        console.error('❌ [Saúde] Rate limit e sem cache disponível');
+      }
       
-      // Fallback para cache mesmo expirado
+      // Fallback para cache mesmo expirado (outros erros)
       const cachedProxies = this.loadFromCache();
       if (cachedProxies.length > 0) {
-        console.log('📦 [Saúde] Usando cache expirado como fallback');
         this.proxies = cachedProxies;
+        // Notifica progressCallback com o cache expirado
+        if (progressCallback) {
+          progressCallback(cachedProxies.length);
+        }
         return this.proxies;
       }
       
@@ -334,8 +476,6 @@ class SaudeChecker {
    * Testa múltiplos proxies em paralelo
    */
   async testProxies(proxies, progressCallback) {
-    console.log(`🧪 [Saúde] Testando ${proxies.length} proxies...`);
-    
     const batchSize = 10;
     const validProxies = [];
     
@@ -351,7 +491,9 @@ class SaudeChecker {
       const validBatch = batchResults.filter(proxy => proxy !== null);
       validProxies.push(...validBatch);
       
-      if (progressCallback) {
+      // Só envia progresso se tiver proxies válidos e se progressCallback foi fornecido
+      // NÃO envia 0 para evitar poluir o progresso
+      if (progressCallback && validProxies.length > 0) {
         progressCallback(validProxies.length);
       }
       
@@ -359,7 +501,11 @@ class SaudeChecker {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     
-    console.log(`✅ [Saúde] ${validProxies.length}/${proxies.length} proxies válidos encontrados`);
+    // Envia progresso final apenas se tiver proxies válidos
+    if (progressCallback && validProxies.length > 0) {
+      progressCallback(validProxies.length);
+    }
+    
     return validProxies;
   }
 
@@ -370,46 +516,146 @@ class SaudeChecker {
     try {
       const result = await this.workbuscasChecker.makeAPIRequest(cpf, proxy);
       
-      if (result.success && result.interpretation === 'found' && result.data) {
+      // Debug: log da estrutura retornada (apenas se não tiver email/telefone)
+      let hasDebugged = false;
+      
+      // Se a requisição foi bem-sucedida e tem dados, tenta extrair
+      // Aceita mesmo se interpretation não for 'found', pois pode ter dados parciais
+      if (result.success && result.data) {
         const data = result.data;
         
-        // Extrai TODOS os emails disponíveis
+        // Extrai TODOS os emails disponíveis - VERIFICA TODOS OS FORMATOS POSSÍVEIS
         const emails = [];
-        if (data.email) {
-          emails.push(data.email);
+        
+        // Formato 1: email direto (string)
+        if (data.email && typeof data.email === 'string' && data.email.trim()) {
+          emails.push(data.email.trim());
         }
-        if (data.emails && Array.isArray(data.emails) && data.emails.length > 0) {
+        
+        // Formato 2: emails como array de objetos {email: "...", tipo: "..."}
+        if (data.emails && Array.isArray(data.emails)) {
           data.emails.forEach(e => {
-            if (e.email && !emails.includes(e.email)) {
-              emails.push(e.email);
+            if (e && typeof e === 'object') {
+              if (e.email && typeof e.email === 'string' && e.email.trim() && !emails.includes(e.email.trim())) {
+                emails.push(e.email.trim());
+              }
+            } else if (typeof e === 'string' && e.trim() && !emails.includes(e.trim())) {
+              // Se emails é array de strings
+              emails.push(e.trim());
             }
           });
         }
         
-        // Extrai TODOS os telefones disponíveis e formata
+        // Formato 3: Email dentro de outros objetos (pode estar em DadosBasicos, etc)
+        if (!emails.length && data.DadosBasicos && data.DadosBasicos.email) {
+          const email = data.DadosBasicos.email;
+          if (typeof email === 'string' && email.trim()) {
+            emails.push(email.trim());
+          }
+        }
+        
+        // Extrai TODOS os telefones disponíveis e formata - VERIFICA TODOS OS FORMATOS
         const phones = [];
+        
+        // Formato 1: telefones como array de objetos
         if (data.telefones && Array.isArray(data.telefones) && data.telefones.length > 0) {
           data.telefones.forEach(t => {
-            if (t.telefone || t.numero) {
-              const phone = this.formatPhone(t.telefone || t.numero);
+            if (t && typeof t === 'object') {
+              const phoneStr = t.telefone || t.numero || t;
+              if (phoneStr && typeof phoneStr === 'string') {
+                const phone = this.formatPhone(phoneStr);
+                if (phone && !phones.includes(phone)) {
+                  phones.push(phone);
+                }
+              }
+            } else if (typeof t === 'string') {
+              const phone = this.formatPhone(t);
               if (phone && !phones.includes(phone)) {
                 phones.push(phone);
               }
             }
           });
         }
-        if (data.telefone && !phones.includes(this.formatPhone(data.telefone))) {
-          phones.push(this.formatPhone(data.telefone));
+        
+        // Formato 2: telefone direto (string)
+        if (data.telefone && typeof data.telefone === 'string' && data.telefone.trim()) {
+          const phone = this.formatPhone(data.telefone);
+          if (phone && !phones.includes(phone)) {
+            phones.push(phone);
+          }
         }
         
+        // Formato 3: telefone dentro de DadosBasicos
+        if (!phones.length && data.DadosBasicos && data.DadosBasicos.telefone) {
+          const phoneStr = data.DadosBasicos.telefone;
+          if (typeof phoneStr === 'string') {
+            const phone = this.formatPhone(phoneStr);
+            if (phone && !phones.includes(phone)) {
+              phones.push(phone);
+            }
+          }
+        }
+        
+        // Debug: se não encontrou emails mas a requisição foi bem-sucedida, loga estrutura
+        if (!hasDebugged && emails.length === 0 && result.success) {
+          console.log(`[Saúde] CPF ${cpf} - Nenhum email encontrado. Estrutura dos dados:`, JSON.stringify(data, null, 2).substring(0, 500));
+          hasDebugged = true;
+        }
+        
+        // Se tem dados (mesmo que não tenha email/telefone), retorna sucesso
+        // Isso permite que mesmo sem email/telefone, continue o fluxo (vai usar padrão)
         return {
           success: true,
           emails: emails,
           phones: phones,
-          email: emails.length > 0 ? emails[0] : null, // Mantém primeiro para compatibilidade
-          phone: phones.length > 0 ? phones[0] : null, // Mantém primeiro para compatibilidade
-          workbuscasData: data
+          email: emails.length > 0 ? emails[0] : null,
+          phone: phones.length > 0 ? phones[0] : null,
+          workbuscasData: data,
+          interpretation: result.interpretation || 'found'
         };
+      }
+      
+      // Se não teve sucesso mas ainda tem dados (pode ser interpretation diferente)
+      if (result.data && !result.success) {
+        const data = result.data;
+        const emails = [];
+        const phones = [];
+        
+        // Tenta extrair mesmo assim
+        if (data.email && typeof data.email === 'string' && data.email.trim()) {
+          emails.push(data.email.trim());
+        }
+        if (data.emails && Array.isArray(data.emails)) {
+          data.emails.forEach(e => {
+            if (e && typeof e === 'object' && e.email && typeof e.email === 'string' && e.email.trim()) {
+              if (!emails.includes(e.email.trim())) emails.push(e.email.trim());
+            }
+          });
+        }
+        if (data.telefones && Array.isArray(data.telefones)) {
+          data.telefones.forEach(t => {
+            if (t && typeof t === 'object') {
+              const phoneStr = t.telefone || t.numero;
+              if (phoneStr && typeof phoneStr === 'string') {
+                const phone = this.formatPhone(phoneStr);
+                if (phone && !phones.includes(phone)) phones.push(phone);
+              }
+            }
+          });
+        }
+        
+        // Se encontrou email ou telefone, retorna sucesso mesmo se result.success for false
+        if (emails.length > 0 || phones.length > 0) {
+          return {
+            success: true,
+            emails: emails,
+            phones: phones,
+            email: emails.length > 0 ? emails[0] : null,
+            phone: phones.length > 0 ? phones[0] : null,
+            workbuscasData: data,
+            interpretation: result.interpretation || 'found'
+          };
+        }
       }
       
       return {
@@ -418,7 +664,8 @@ class SaudeChecker {
         phones: [],
         email: null,
         phone: null,
-        workbuscasData: null
+        workbuscasData: result.data || null,
+        interpretation: result.interpretation || 'not_found'
       };
     } catch (error) {
       console.error('[Saúde] Erro ao consultar WorkBuscas:', error.message);
@@ -428,7 +675,8 @@ class SaudeChecker {
         phones: [],
         email: null,
         phone: null,
-        workbuscasData: null
+        workbuscasData: null,
+        interpretation: 'error'
       };
     }
   }
@@ -486,11 +734,6 @@ class SaudeChecker {
       const status = response.status;
       const responseData = response.data || {};
       
-      // Log apenas se encontrar cadastrado ou erro
-      if (status === 201) {
-        console.log(`[Saúde] ✅ CPF ${cpf} CADASTRADO - Status: ${status}`);
-      }
-      
       // Interpreta a resposta baseado no conteúdo
       // Baseado no teste real:
       // - Status 201 + msg "Foi enviado um email..." = CPF CADASTRADO
@@ -521,8 +764,18 @@ class SaudeChecker {
       } else if (responseData.appuser && responseData.appuser !== null) {
         // appuser preenchido = CPF cadastrado
         interpretation = 'registered';
-      } else if (status === 400 || status === 404 || status === 422) {
+      } else if (status === 404) {
+        // Status 404 = CPF não cadastrado (Not Found) - pular imediatamente
         interpretation = 'not_registered';
+      } else if (status === 400 || status === 422) {
+        // Verifica se é 400/422 com "not found" na resposta
+        if (responseData.reason && responseData.reason.toLowerCase().includes('not found')) {
+          interpretation = 'not_registered';
+        } else if (responseData.statusMsg && responseData.statusMsg.toLowerCase().includes('not found')) {
+          interpretation = 'not_registered';
+        } else {
+          interpretation = 'not_registered';
+        }
       } else if (responseData.msg) {
         // Verifica a mensagem
         const msg = responseData.msg.toLowerCase();
@@ -592,12 +845,27 @@ class SaudeChecker {
       }
       
       // Consulta WorkBuscas para obter emails e telefones (com proxy)
-      if (statusCallback) statusCallback('buscando_email', cpf);
-      
-      // Obtém proxy para WorkBuscas
+      // Obtém proxy para WorkBuscas primeiro
       let workbuscasProxy = null;
       if (this.proxies.length > 0) {
-        workbuscasProxy = this.getRandomProxy();
+        const randomProxy = this.getRandomProxy();
+        // Converte o formato do proxy para o formato esperado pelo WorkBuscas
+        // WorkBuscas espera: { proxy_address, port, username, password }
+        // SaudeChecker retorna: { host, port, auth: { username, password } }
+        workbuscasProxy = {
+          proxy_address: randomProxy.host,
+          port: randomProxy.port,
+          username: randomProxy.auth ? randomProxy.auth.username : null,
+          password: randomProxy.auth ? randomProxy.auth.password : null
+        };
+        
+        if (statusCallback && workbuscasProxy) {
+          statusCallback('buscando_email', cpf, null, `${workbuscasProxy.proxy_address}:${workbuscasProxy.port}`);
+        } else if (statusCallback) {
+          statusCallback('buscando_email', cpf);
+        }
+      } else if (statusCallback) {
+        statusCallback('buscando_email', cpf);
       }
       
       const workbuscasResult = await this.consultWorkBuscas(cpf, workbuscasProxy);
@@ -605,41 +873,59 @@ class SaudeChecker {
       const emails = workbuscasResult.emails || [];
       const phones = workbuscasResult.phones || [];
       
-      // Se não encontrou email E telefone no WorkBuscas, não testa na API do Saúde Diária
-      if (emails.length === 0 && phones.length === 0) {
+      // Se não encontrou EMAIL no WorkBuscas, não testa na API do Saúde Diária
+      // Email é obrigatório, telefone pode ser gerado se necessário
+      if (emails.length === 0) {
         if (statusCallback) statusCallback('dados_insuficientes', cpf);
         return {
           cpf: cpf,
           success: false,
-          error: 'Dados insuficientes (emails e telefones não encontrados no WorkBuscas)',
+          error: 'Dados insuficientes (email não encontrado no WorkBuscas)',
           status: 0,
           interpretation: 'skipped',
           proxy: 'N/A',
-          workbuscas: null,
-          workbuscasSuccess: false,
+          workbuscas: workbuscasResult.workbuscasData || null,
+          workbuscasSuccess: workbuscasResult.success || false,
           timestamp: new Date().toISOString()
         };
       }
       
-      // Se não tem emails, usa um padrão
-      if (emails.length === 0) {
-        emails.push('email@exemplo.com');
-      }
-      
-      // Se não tem telefones, usa um padrão
+      // Se não tem telefone mas tem email, gera um telefone genérico baseado no CPF
+      // Isso permite testar mesmo quando WorkBuscas não retornou telefone
       if (phones.length === 0) {
-        phones.push('+5511999999999');
+        // Gera telefone genérico baseado nos últimos dígitos do CPF
+        const cpfDigits = cpf.slice(-9);
+        phones.push(`+5511${cpfDigits}`);
       }
       
-      // FORÇA uso de proxy - não permite requisição sem proxy se houver proxies disponíveis
+      // Carrega proxies se não houver nenhum disponível
       if (this.proxies.length === 0) {
-        return {
-          cpf: cpf,
-          success: false,
-          error: 'Nenhum proxy disponível',
-          status: 0,
+        try {
+          await this.loadProxies();
+        } catch (error) {
+          return {
+            cpf: cpf,
+            success: false,
+            error: `Erro ao carregar proxies: ${error.message}`,
+            status: 0,
+            interpretation: 'error',
+            proxy: 'N/A',
+            workbuscas: workbuscasResult.workbuscasData,
+            workbuscasSuccess: workbuscasResult.success,
+            timestamp: new Date().toISOString()
+          };
+        }
+      }
+      
+      // Se ainda não há proxies após tentar carregar, retorna erro
+      if (this.proxies.length === 0) {
+    return {
+      cpf: cpf,
+      success: false,
+          error: 'Nenhum proxy disponível (não foi possível carregar proxies)',
+      status: 0,
           interpretation: 'error',
-          proxy: 'N/A',
+      proxy: 'N/A',
           workbuscas: workbuscasResult.workbuscasData,
           workbuscasSuccess: workbuscasResult.success,
           timestamp: new Date().toISOString()
@@ -655,19 +941,19 @@ class SaudeChecker {
         // Usa primeiro telefone para este email (ou todos se quiser testar todas combinações)
         const phonenumber = phones[0];
         
-        // Status: testando com email X de Y
-        if (statusCallback) {
-          if (emails.length > 1) {
-            statusCallback('testando_email', cpf, `${emailIndex + 1}/${emails.length}`);
-          } else {
-            statusCallback('testando', cpf);
-          }
-        }
-        
         // Obtém proxy aleatório para cada tentativa
         let proxy = this.getRandomProxy();
         let firstProxy = proxy;
         usedProxy = proxy ? `${proxy.host}:${proxy.port}` : 'N/A';
+        
+        // Status: testando com email X de Y (com proxy)
+        if (statusCallback) {
+          if (emails.length > 1) {
+            statusCallback('testando_email', cpf, `${emailIndex + 1}/${emails.length}`, usedProxy);
+          } else {
+            statusCallback('testando', cpf, null, usedProxy);
+          }
+        }
         
         // Faz requisição à API Saúde Diária com retry e rotação de proxy (SEM FALLBACK SEM PROXY)
         let result = null;
@@ -682,6 +968,18 @@ class SaudeChecker {
             }
             result = await this.makeAPIRequest(cpf, email, phonenumber, proxy);
             
+            // Se retornou 404 (Not Found), CPF não cadastrado - pular imediatamente para próximo CPF
+            // Não testa outros emails, vai direto para o próximo CPF
+            if (result.status === 404 || (result.status === 400 && result.response && result.response.reason && result.response.reason.toLowerCase().includes('not found'))) {
+              if (proxy && result.proxy === 'Sem Proxy') {
+                result.proxy = `${proxy.host}:${proxy.port}`;
+              }
+              usedProxy = result.proxy;
+              finalResult = result;
+              finalResult.interpretation = 'not_registered'; // Garante que é marcado como não cadastrado
+              break; // Para imediatamente e pula para próximo CPF (sai do loop de emails)
+            }
+            
             // Se sucesso ou encontrou cadastrado, para de testar outros emails
             if (result.success || result.interpretation === 'registered') {
               if (proxy && result.proxy === 'Sem Proxy') {
@@ -689,10 +987,18 @@ class SaudeChecker {
               }
               usedProxy = result.proxy;
               finalResult = result;
-              if (result.interpretation === 'registered') {
-                console.log(`[Saúde] ✅ CPF ${cpf} CADASTRADO com email ${email}`);
-              }
               break; // Para de testar outros emails
+            }
+            
+            // Se interpretação é 'not_registered' com status 404, também pula (redundante mas garantido)
+            if (result.interpretation === 'not_registered' && result.status === 404) {
+              // 404 = definitivamente não cadastrado, pular imediatamente
+              if (proxy && result.proxy === 'Sem Proxy') {
+                result.proxy = `${proxy.host}:${proxy.port}`;
+              }
+              usedProxy = result.proxy;
+              finalResult = result;
+              break; // Para imediatamente e pula para próximo CPF (sai do loop de emails)
             }
             
             // Se erro de rede/timeout, tenta com outro proxy (NÃO tenta sem proxy)
@@ -742,8 +1048,8 @@ class SaudeChecker {
           status: 0,
           interpretation: 'not_registered',
           proxy: usedProxy,
-          timestamp: new Date().toISOString()
-        };
+      timestamp: new Date().toISOString()
+    };
       }
       
       // Atualiza proxy no resultado
@@ -764,6 +1070,9 @@ class SaudeChecker {
         this.registeredCount++;
       } else if (result.interpretation === 'not_registered') {
         this.unregisteredCount++;
+      } else if (result.interpretation === 'skipped') {
+        // CPF pulado (dados insuficientes) - não conta como erro, apenas pula
+        // Não incrementa nenhum contador, apenas passa para o próximo
       }
       
       // Adiciona dados do WorkBuscas ao resultado
@@ -797,7 +1106,7 @@ class SaudeChecker {
   }
 
   /**
-   * Verifica múltiplos CPFs
+   * Verifica múltiplos CPFs em lotes com processamento paralelo (igual ao Gemeos)
    * Se não fornecer CPFs, gera automaticamente
    * @param {Function} statusCallback - Callback para atualizar status em tempo real
    */
@@ -812,13 +1121,45 @@ class SaudeChecker {
       }
     }
     
-    for (const cpf of cpfs) {
-      const result = await this.checkCPF(cpf, false, statusCallback);
-      results.push(result);
-      this.results.push(result);
+    // Processa em lotes (batches) em paralelo
+    for (let i = 0; i < cpfs.length; i += this.batchSize) {
+      const batch = cpfs.slice(i, i + this.batchSize);
+      const batchNumber = Math.floor(i / this.batchSize) + 1;
+      const totalBatches = Math.ceil(cpfs.length / this.batchSize);
       
-      // Delay entre requisições
-      await this.sleep(this.delay);
+      // Processa todo o lote em paralelo (100% simultâneo, sem delay escalonado)
+      const batchPromises = batch.map(async (cpf) => {
+        try {
+          // Chama checkCPF sem delay para máxima simultaneidade
+          const result = await this.checkCPF(cpf, false, statusCallback);
+          if (!result.timestamp) {
+            result.timestamp = new Date().toISOString();
+          }
+          this.results.push(result);
+          return result;
+        } catch (error) {
+          this.errorCount++;
+          const failed = {
+            cpf: cpf,
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString(),
+            proxy: 'N/A',
+            interpretation: 'error'
+          };
+          this.results.push(failed);
+          return failed;
+        }
+      });
+      
+      // Aguarda todo o lote processar em paralelo
+      const batchResults = await Promise.all(batchPromises);
+      results.push(...batchResults);
+      
+      // Delay entre lotes (não entre CPFs individuais)
+      if (i + this.batchSize < cpfs.length) {
+        await this.sleep(this.delay);
+      }
     }
     
     return results;

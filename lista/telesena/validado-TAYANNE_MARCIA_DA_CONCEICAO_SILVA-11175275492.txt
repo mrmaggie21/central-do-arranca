@@ -1,0 +1,26 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 19:14:10
+🔢 CPF: 11175275492
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): t***@gmail.com
+📱 Final do Telefone: 9867
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: TAYANNE MARCIA DA CONCEICAO SILVA
+   👩 Nome da Mãe: MARIA DAS DORES DA CONCEICAO
+   📅 Data de Nascimento: 20/12/1994
+   📱 Telefones (2):
+      1. 37991389867 - TELEFONE MÓVEL
+      2. 37998583127 - TELEFONE MÓVEL
+   📧 Email: tayannemarcia21@gmail.com
+   💰 Renda: R$ 546,06
+   📈 Score CSB: 250
+   🆔 RG: 8806675 - SSP - SECRETARIA DE SEGURANCA PUBLICA (MG)
+      📅 Data de Emissão do RG: 2009-06-25
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

@@ -17,7 +17,7 @@
                     <img src="../saude_logo.webp" alt="Saúde Diária Logo" class="logo-image">
                     <div class="logo-text">
                         <h1>Central do Arranca</h1>
-                        <span class="version">v1.1.0</span>
+                        <span class="version" id="versionHeader">v1.5.2</span>
                     </div>
                 </div>
             </div>
@@ -220,12 +220,21 @@
         <footer class="footer">
             <div class="footer-content">
                 <p>&copy; 2025 Time do Arranca - Todos os direitos reservados</p>
-                <p class="footer-subtitle">Central do Arranca - Saúde Diária Checker v1.1.0</p>
+                <p class="footer-subtitle" id="footerVersion">Central do Arranca - Saúde Diária Checker v1.5.2</p>
             </div>
         </footer>
     </div>
 
     <script src="renderer.js"></script>
+    <script>
+        // Atualiza versão dinamicamente
+        const pkg = require('../package.json');
+        const version = 'v' + (pkg.version || '1.5.2');
+        const versionHeader = document.getElementById('versionHeader');
+        const footerVersion = document.getElementById('footerVersion');
+        if (versionHeader) versionHeader.textContent = version;
+        if (footerVersion) footerVersion.textContent = `Central do Arranca - Saúde Diária Checker ${version}`;
+    </script>
 </body>
 </html>
 

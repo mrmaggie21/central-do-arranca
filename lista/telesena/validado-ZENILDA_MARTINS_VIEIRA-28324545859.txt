@@ -1,0 +1,28 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 19:00:46
+🔢 CPF: 28324545859
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): l***@hotmail.com
+📱 Final do Telefone: 3259
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: ZENILDA MARTINS VIEIRA
+   👩 Nome da Mãe: PALMIRA MARTINS VIEIRA
+   📅 Data de Nascimento: 18/06/1979
+   📱 Telefones (7):
+      1. 1145752430 - TELEFONE RESIDENCIAL
+      2. 11974331225 - TELEFONE MÓVEL
+      3. 11983533259 - TELEFONE MÓVEL
+      4. 1146200108 (VIVO) - RESIDENCIAL
+      5. 06142250 (VIVO) - CELULAR
+      6. 11986796979 (VIVO) - FIXO
+      7. 1136025415 (NO) - NO
+   💰 Renda: R$ 657,57
+   📈 Score CSB: 129
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

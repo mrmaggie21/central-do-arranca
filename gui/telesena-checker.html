@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central do Arranca - Telesena Checker</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <div class="app-main">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <img src="https://www.telesena.com.br/conteudo/img/telesena-brand.webp" alt="Telesena Logo" class="logo-image">
+                    <div class="logo-text">
+                        <h1>Central do Arranca</h1>
+                        <span class="version">v1.1.0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <button id="backToMenuBtn" class="btn btn-secondary btn-back-menu">
+                        <span class="btn-icon">⬅️</span>
+                        <span class="btn-text">Voltar ao Menu</span>
+                    </button>
+                </div>
+                <div class="nav-section">
+                    <h3>⚙️ Configurações</h3>
+                    <div class="config-group">
+                        <div class="config-item">
+                            <label for="delay">Delay (segundos)</label>
+                            <input type="number" id="delay" min="1" max="60" value="5">
+                        </div>
+                        <div class="config-item">
+                            <label for="mode">Modo de execução</label>
+                            <select id="mode">
+                                <option value="continuous">Contínuo</option>
+                                <option value="limited">Limitado</option>
+                            </select>
+                        </div>
+                        <div class="config-item">
+                            <label for="batchSize">CPFs por lote</label>
+                            <input type="number" id="batchSize" min="1" max="100" value="20">
+                        </div>
+                        <div class="config-item" id="quantity-row" style="display: none;">
+                            <label for="quantity">Quantidade</label>
+                            <input type="number" id="quantity" min="1" max="1000" value="10">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>🎮 Controles</h3>
+                    <div class="button-group">
+                        <button id="startBtn" class="btn btn-primary">
+                            <span class="btn-icon">🚀</span>
+                            <span class="btn-text">Iniciar</span>
+                        </button>
+                        <button id="stopBtn" class="btn btn-danger" disabled>
+                            <span class="btn-icon">🛑</span>
+                            <span class="btn-text">Parar</span>
+                        </button>
+                        <button id="testBtn" class="btn btn-secondary">
+                            <span class="btn-icon">🎲</span>
+                            <span class="btn-text">Gerar CPF</span>
+                        </button>
+                        <button id="openFolderBtn" class="btn btn-info">
+                            <span class="btn-icon">📁</span>
+                            <span class="btn-text">Abrir Pasta</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>🧪 Teste Específico</h3>
+                    <div class="test-group">
+                        <input type="text" id="cpfTestInput" placeholder="000.000.000-00" maxlength="14">
+                        <button id="testSpecificBtn" class="btn btn-success">
+                            <span class="btn-icon">✅</span>
+                            <span class="btn-text">Testar</span>
+                        </button>
+                        <div class="cpf-suggestions">
+                            <button class="cpf-suggestion" data-cpf="451.483.158-14">451.483.158-14</button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <h2 id="headerTitle">Proxies carregados: 0</h2>
+                    <p id="headerSubtitle" style="display:none;"></p>
+                </div>
+                <div class="header-right">
+                    <div class="status-indicator">
+                        <div class="status-dot" id="statusDot"></div>
+                        <span id="statusText">Aguardando</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Statistics Cards -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <h3 id="totalVerified">0</h3>
+                            <p>CPFs Verificados</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <h3 id="validFound">0</h3>
+                            <p>CPFs Válidos</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-content">
+                            <h3 id="successRate">0.000%</h3>
+                            <p>Taxa de Sucesso</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-content">
+                            <h3 id="elapsedTime">0h 0m</h3>
+                            <p>Tempo Decorrido</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Current CPF Display -->
+            <section class="current-cpf-section">
+                <div class="cpf-container">
+                    <h3>Últimos CPFs Verificados</h3>
+                    <div class="cpf-table-container">
+                        <table class="cpf-table" id="cpfTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>CPF</th>
+                                    <th>Status</th>
+                                    <th>Proxy</th>
+                                    <th>Horário</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cpfTableBody">
+                                <tr class="no-data">
+                                    <td colspan="5">Aguardando início da verificação...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Content Grid -->
+            <section class="content-grid">
+                <!-- Log Panel -->
+                <div class="log-panel">
+                    <div class="panel-header">
+                        <h3>📝 Log de Atividade</h3>
+                        <button id="clearLogBtn" class="btn btn-small">🗑️ Limpar</button>
+                    </div>
+                    <div class="log-content" id="logContent">
+                        <div class="log-entry info">
+                            <span class="timestamp">[SISTEMA]</span>
+                            <span class="message">Telesena Checker iniciado. Configure os parâmetros e inicie a verificação.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Valid CPFs Panel -->
+                <div class="valid-cpfs-panel">
+                    <div class="panel-header">
+                        <h3>✅ CPFs Válidos Encontrados</h3>
+                        <span class="count-badge" id="validCount">0</span>
+                    </div>
+                    <div class="valid-cpfs-list" id="validCpfsList">
+                        <div class="no-results">
+                            <div class="no-results-icon">🔍</div>
+                            <p>Nenhum CPF válido encontrado ainda</p>
+                            <small>Os resultados aparecerão aqui automaticamente</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        </div>
+        
+        <!-- Proxy Loading Indicator -->
+        <div id="proxyLoadingIndicator" class="proxy-loading-indicator">
+            <div class="proxy-loading-content">
+                <div class="proxy-loading-spinner"></div>
+                <div class="proxy-loading-info">
+                    <span class="proxy-loading-text">🌍 Carregando proxies...</span>
+                    <span class="proxy-loading-count">0/1000</span>
+                    <div class="proxy-loading-details">
+                        <span class="proxy-loading-subtitle">🌐 Conectando à Webshare</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2025 Time do Arranca - Todos os direitos reservados</p>
+                <p class="footer-subtitle" id="footerVersion">Central do Arranca - Telesena Checker v1.5.2</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="renderer.js"></script>
+    <script>
+        // Atualiza versão dinamicamente
+        const pkg = require('../package.json');
+        const version = 'v' + (pkg.version || '1.5.2');
+        const versionHeader = document.getElementById('versionHeader');
+        const footerVersion = document.getElementById('footerVersion');
+        if (versionHeader) versionHeader.textContent = version;
+        if (footerVersion) footerVersion.textContent = `Central do Arranca - Telesena Checker ${version}`;
+    </script>
+    <script>
+        // Adaptação do renderer.js para Telesena
+        const { ipcRenderer } = require('electron');
+        
+        let isRunning = false;
+        let statsInterval = null;
+        const moduleName = 'telesena';
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            updateStats();
+        });
+        
+        function setupEventListeners() {
+            // Botões principais
+            document.getElementById('startBtn').addEventListener('click', startChecking);
+            document.getElementById('stopBtn').addEventListener('click', stopChecking);
+            document.getElementById('testBtn').addEventListener('click', generateTestCPF);
+            document.getElementById('testSpecificBtn').addEventListener('click', testSpecificCPF);
+            document.getElementById('openFolderBtn').addEventListener('click', openResultsFolder);
+            document.getElementById('backToMenuBtn').addEventListener('click', backToMenu);
+            document.getElementById('clearLogBtn').addEventListener('click', clearLog);
+            
+            // Configurações
+            document.getElementById('mode').addEventListener('change', (e) => {
+                document.getElementById('quantity-row').style.display = 
+                    e.target.value === 'limited' ? 'block' : 'none';
+            });
+            
+            // Sugestões de CPF
+            document.querySelectorAll('.cpf-suggestion').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('cpfTestInput').value = btn.dataset.cpf;
+                });
+            });
+            
+            // Formatação de CPF
+            document.getElementById('cpfTestInput').addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+                if (value.length <= 11) {
+                    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+                    value = value.replace(/(\d{3})(\d{3})(\d{3})/, '$1.$2.$3');
+                    value = value.replace(/(\d{3})(\d{3})/, '$1.$2');
+                    e.target.value = value;
+                }
+            });
+        }
+        
+        // IPC Listeners
+        ipcRenderer.on('log-message', (event, data) => {
+            addLogEntry(data.type || 'info', data.message);
+        });
+        
+        ipcRenderer.on('cpf-result', (event, data) => {
+            handleCPFResult(data);
+        });
+        
+        ipcRenderer.on('cpf-checking', (event, data) => {
+            updateCheckingStatus(data);
+        });
+        
+        ipcRenderer.on('proxy-loading-start', () => {
+            document.getElementById('proxyLoadingIndicator').style.display = 'flex';
+        });
+        
+        ipcRenderer.on('proxy-loading-progress', (event, data) => {
+            const count = data.count || 0;
+            document.querySelector('.proxy-loading-count').textContent = `${count}/1000`;
+            document.getElementById('headerTitle').textContent = `Proxies carregados: ${count}`;
+        });
+        
+        ipcRenderer.on('proxy-loading-complete', (event, data) => {
+            document.getElementById('proxyLoadingIndicator').style.display = 'none';
+            document.getElementById('headerTitle').textContent = `Proxies carregados: ${data.total || 0}`;
+            addLogEntry('success', `✅ ${data.total || 0} proxies carregados com sucesso!`);
+        });
+        
+        ipcRenderer.on('batch-info', (event, data) => {
+            addLogEntry('info', `📦 Lote #${data.batchNumber} - ${data.batchSize} CPFs`);
+        });
+        
+        ipcRenderer.on('batch-summary', (event, data) => {
+            addLogEntry('info', 
+                `📊 Lote concluído: ${data.validCPFsInBatch} válidos, ${data.errorsInBatch} erros`);
+        });
+        
+        ipcRenderer.on('cpf-saved', (event, data) => {
+            addLogEntry('success', `💾 CPF ${data.cpf} salvo em: ${data.filename}`);
+        });
+        
+        function startChecking() {
+            const delay = parseInt(document.getElementById('delay').value) * 1000;
+            const batchSize = parseInt(document.getElementById('batchSize').value);
+            const mode = document.getElementById('mode').value;
+            const quantity = mode === 'limited' ? parseInt(document.getElementById('quantity').value) : null;
+            
+            ipcRenderer.invoke('start-checking', {
+                delay,
+                batchSize,
+                mode,
+                quantity
+            }).then(result => {
+                if (result.success) {
+                    isRunning = true;
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('stopBtn').disabled = false;
+                    document.getElementById('statusText').textContent = 'Rodando';
+                    document.getElementById('statusDot').className = 'status-dot running';
+                    addLogEntry('success', '✅ Verificação iniciada!');
+                    
+                    // Inicia atualização de estatísticas
+                    statsInterval = setInterval(updateStats, 1000);
+                } else {
+                    addLogEntry('error', `❌ Erro: ${result.message}`);
+                }
+            });
+        }
+        
+        function stopChecking() {
+            ipcRenderer.invoke('stop-checking').then(result => {
+                if (result.success) {
+                    isRunning = false;
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('stopBtn').disabled = true;
+                    document.getElementById('statusText').textContent = 'Parado';
+                    document.getElementById('statusDot').className = 'status-dot stopped';
+                    addLogEntry('info', '⏸️ Verificação parada');
+                    
+                    if (statsInterval) {
+                        clearInterval(statsInterval);
+                        statsInterval = null;
+                    }
+                }
+            });
+        }
+        
+        function generateTestCPF() {
+            ipcRenderer.invoke('generate-test-cpf').then(cpf => {
+                document.getElementById('cpfTestInput').value = formatCPF(cpf);
+            });
+        }
+        
+        function testSpecificCPF() {
+            const cpf = document.getElementById('cpfTestInput').value.replace(/\D/g, '');
+            if (cpf.length !== 11) {
+                addLogEntry('error', '❌ CPF inválido! Digite um CPF válido.');
+                return;
+            }
+            
+            addLogEntry('info', `🧪 Testando CPF: ${formatCPF(cpf)}...`);
+            ipcRenderer.invoke('test-single-cpf', cpf);
+        }
+        
+        function formatCPF(cpf) {
+            const cleaned = cpf.replace(/\D/g, '');
+            return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        }
+        
+        function openResultsFolder() {
+            ipcRenderer.invoke('open-results-folder');
+        }
+        
+        function backToMenu() {
+            ipcRenderer.send('back-to-menu');
+        }
+        
+        function clearLog() {
+            document.getElementById('logContent').innerHTML = '';
+            addLogEntry('info', '🗑️ Log limpo');
+        }
+        
+        function addLogEntry(type, message) {
+            const logContent = document.getElementById('logContent');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString('pt-BR');
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span><span class="message">${message}</span>`;
+            
+            logContent.appendChild(entry);
+            logContent.scrollTop = logContent.scrollHeight;
+            
+            // Limita a 500 entradas
+            while (logContent.children.length > 500) {
+                logContent.removeChild(logContent.firstChild);
+            }
+        }
+        
+        function handleCPFResult(data) {
+            const tbody = document.getElementById('cpfTableBody');
+            
+            // Remove "no-data" se existir
+            const noDataRow = tbody.querySelector('.no-data');
+            if (noDataRow) {
+                noDataRow.remove();
+            }
+            
+            const row = document.createElement('tr');
+            row.className = data.status === 'registered' ? 'registered' : 
+                           data.status === 'error' ? 'error' : 'not-registered';
+            
+            const index = tbody.children.length + 1;
+            const cpfFormatted = formatCPF(data.cpf);
+            const statusText = data.status === 'registered' ? '✅ CADASTRADO' :
+                              data.status === 'error' ? '❌ ERRO' :
+                              data.status === 'skipped' ? '⏭️ PULADO' :
+                              '❌ NÃO CADASTRADO';
+            
+            // COLUNA PROXY: APENAS o proxy, nunca data
+            let proxyText = 'Sem Proxy';
+            if (data.proxy) {
+              const proxyValue = String(data.proxy).trim();
+              // Verifica se é uma data (formato brasileiro: DD/MM/YYYY)
+              const isDate = /^\d{2}\/\d{2}\/\d{4}/.test(proxyValue);
+              // Verifica se é uma hora (formato: HH:MM:SS)
+              const isTime = /^\d{2}:\d{2}:\d{2}/.test(proxyValue);
+              
+              // Se NÃO é data e NÃO é hora, então é proxy
+              if (!isDate && !isTime) {
+                proxyText = proxyValue;
+              }
+            }
+            
+            // COLUNA HORÁRIO: SEMPRE data e hora completa
+            const now = new Date();
+            const timeText = now.toLocaleString('pt-BR', { 
+              day: '2-digit', 
+              month: '2-digit', 
+              year: 'numeric', 
+              hour: '2-digit', 
+              minute: '2-digit', 
+              second: '2-digit' 
+            });
+            
+            // DEBUG
+            console.log('[Telesena] Valores finais:', {
+              '#': index,
+              'CPF': cpfFormatted,
+              'Status': statusText,
+              'Proxy': proxyText,
+              'Horário': timeText
+            });
+            
+            // Usa innerHTML com ordem EXPLÍCITA (sem coluna Tipo)
+            row.innerHTML = `
+                <td>${index}</td>
+                <td>${cpfFormatted}</td>
+                <td>${statusText}</td>
+                <td>${proxyText}</td>
+                <td>${timeText}</td>
+            `;
+            
+            tbody.insertBefore(row, tbody.firstChild);
+            
+            // Limita a 100 linhas
+            while (tbody.children.length > 100) {
+                tbody.removeChild(tbody.lastChild);
+            }
+            
+            // Se for válido, adiciona à lista de válidos
+            if (data.status === 'registered') {
+                addValidCPF(data);
+            }
+        }
+        
+        function addValidCPF(data) {
+            const validList = document.getElementById('validCpfsList');
+            const noResults = validList.querySelector('.no-results');
+            if (noResults) {
+                noResults.remove();
+            }
+            
+            const item = document.createElement('div');
+            item.className = 'valid-cpf-item';
+            item.innerHTML = `
+                <div class="valid-cpf-header">
+                    <span class="valid-cpf-number">${formatCPF(data.cpf)}</span>
+                    <span class="valid-cpf-status">✅ CADASTRADO</span>
+                </div>
+                ${data.message ? `<div class="valid-cpf-detail">📝 Tipo: ${data.message}</div>` : ''}
+                ${data.emailMascarado ? `<div class="valid-cpf-detail">📧 Email: ${data.emailMascarado}</div>` : ''}
+                ${data.finalTelefone ? `<div class="valid-cpf-detail">📱 Final: ${data.finalTelefone}</div>` : ''}
+                <div class="valid-cpf-time">${new Date().toLocaleString('pt-BR')}</div>
+            `;
+            
+            validList.insertBefore(item, validList.firstChild);
+            
+            // Atualiza contador
+            const count = validList.children.length;
+            document.getElementById('validCount').textContent = count;
+        }
+        
+        function updateCheckingStatus(data) {
+            // Atualiza status de verificação em tempo real
+            if (data.statusText) {
+                const statusDot = document.getElementById('statusDot');
+                statusDot.className = 'status-dot checking';
+                document.getElementById('statusText').textContent = data.statusText;
+            }
+        }
+        
+        function updateStats() {
+            ipcRenderer.invoke('get-stats').then(stats => {
+                document.getElementById('totalVerified').textContent = stats.totalVerified || 0;
+                document.getElementById('validFound').textContent = stats.validFound || 0;
+                document.getElementById('successRate').textContent = 
+                    (stats.successRate || '0.000') + '%';
+                document.getElementById('elapsedTime').textContent = stats.elapsedTime || '0h 0m';
+            });
+        }
+        
+        // Carrega proxies ao iniciar
+        setTimeout(() => {
+            updateStats();
+        }, 500);
+    </script>
+</body>
+</html>
+

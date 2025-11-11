@@ -1,0 +1,29 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 18:41:09
+🔢 CPF: 63026228320
+✅ Status: CADASTRADO
+🧪 Tipo: VERIFICAÇÃO AUTOMÁTICA
+
+📝 Tipo de Cadastro: Cadastrado
+📧 Email (mascarado): s***@gmail.com
+📱 Final do Telefone: 3258
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: JOAO SERGIO BARRETO DE MEDEIROS
+   👩 Nome da Mãe: MARIA LILI BARRETO DE MEDEIROS
+   📅 Data de Nascimento: 12/03/1972
+   📱 Telefones (4):
+      1. 8834321163 - TELEFONE RESIDENCIAL
+      2. 88993253258 (CLARO) - NO
+      3. 88993235468 (CLARO) - NO
+      4. 88981027725 (VIVO) - MOVEL PREPAGO
+   💰 Renda: R$ 667,03
+   📈 Score CSB: 744
+   🆔 RG: 20050151274 - SSP - SECRETARIA DE SEGURANCA PUBLICA (CE)
+      📅 Data de Emissão do RG: 2005-12-14
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

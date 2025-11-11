@@ -1,0 +1,30 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 19:30:30
+🔢 CPF: 00362725071
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): m***@hotmail.com
+📱 Final do Telefone: 1256
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: MARCIO JOSE DANI VALANDRO
+   👩 Nome da Mãe: CLAUDIA REGINA TEIXEIRA DANI VALANDRO
+   📅 Data de Nascimento: 29/11/1982
+   📱 Telefones (9):
+      1. 5134593496 - TELEFONE RESIDENCIAL
+      2. 5134892065 - TELEFONE RESIDENCIAL
+      3. 51996631256 - TELEFONE MÓVEL
+      4. 51984141749 - TELEFONE MÓVEL
+      5. 51981795331 (TIM) - NO
+      6. 51980588924 (VIVO) - MOVEL PREPAGO
+      7. 5139591015 (NO) - NO
+      8. 51995427901 (TELEFONIA) - Não informado
+      9. 51995899482 (TELEFONIA) - Não informado
+   📧 Email: marciojosevalandro@hotmail.com
+   💰 Renda: R$ 2296,78
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

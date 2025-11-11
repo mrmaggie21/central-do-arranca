@@ -1,0 +1,25 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 11/11/2025, 17:19:57
+🔢 CPF: 02532034491
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): a***@gmail.com
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: JOSE DE OLIVEIRA JATOBA
+   👩 Nome da Mãe: ALZIRA BASTOS DE OLIVEIRA
+   📅 Data de Nascimento: 09/03/1938
+   📱 Telefones (4):
+      1. 8432053234 - TELEFONE RESIDENCIAL
+      2. 84999538301 - TELEFONE MÓVEL
+      3. 84991083188 - TELEFONE MÓVEL
+      4. 84999538238 (TELEFONIA) - Não informado
+   📧 Email: kraemerseguros@terra.com.br
+   💰 Renda: R$ 1736,80
+   📈 Score CSB: 858
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

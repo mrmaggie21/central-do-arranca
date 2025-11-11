@@ -1,0 +1,27 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 20:06:52
+🔢 CPF: 03111618633
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): d***@yahoo.com
+📱 Final do Telefone: 6544
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: SIMONE APARECIDA DUARTE DINIZ
+   👩 Nome da Mãe: ELZA PEREIRA DUARTE
+   📅 Data de Nascimento: 15/03/1977
+   📱 Telefones (5):
+      1. 3134457894 - TELEFONE RESIDENCIAL
+      2. 31986738458 - TELEFONE MÓVEL
+      3. 31997536544 (VIVO) - MOVEL POSPAGO
+      4. 3121050000 (NO) - NO
+      5. 31996930228 - CELULAR
+   📧 Email: simoneduartediniz@ig.com.br
+   💰 Renda: R$ 1889,15
+   📈 Score CSB: 901
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

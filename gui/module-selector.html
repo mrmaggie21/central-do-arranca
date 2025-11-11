@@ -47,6 +47,11 @@
       position: relative;
       border: 4px solid transparent;
     }
+    /* Container do Gemeos sem círculo */
+    #gemeosLogo {
+      border-radius: 0;
+      overflow: visible;
+    }
     .logo-container.status-running {
       border-color: #10b981;
       box-shadow: 0 0 30px rgba(16, 185, 129, 0.6), 0 0 60px rgba(16, 185, 129, 0.4);
@@ -169,11 +174,14 @@
     .logo {
       width: 150px;
       height: 150px;
-      border-radius: 50%;
       object-fit: contain;
       display: block;
       padding: 0;
       margin: 0;
+    }
+    /* Logo do Gemeos sem círculo */
+    #gemeosLogo .logo {
+      border-radius: 0;
     }
     .hint {
       margin-top: 30px;
@@ -221,8 +229,12 @@
         <div class="status-badge" id="saudeBadge" style="display: none;">Rodando</div>
       </div>
       <div class="logo-container status-none" id="workbuscasLogo">
-        <img src="../cpf_logo.jpg" alt="WorkBuscas Checker" class="logo" />
+        <img src="../cpf_logo.png" alt="WorkBuscas Checker" class="logo" />
         <div class="status-badge" id="workbuscasBadge" style="display: none;">Rodando</div>
+      </div>
+      <div class="logo-container status-none" id="telesenaLogo">
+        <img src="https://www.telesena.com.br/conteudo/img/telesena-brand.webp" alt="Telesena Checker" class="logo" />
+        <div class="status-badge" id="telesenaBadge" style="display: none;">Rodando</div>
       </div>
     </div>
     <div class="hint" id="hintText">Clique no módulo para iniciar</div>
@@ -251,11 +263,14 @@
       
       const workbuscasBadge = document.getElementById('workbuscasBadge');
       const workbuscasLogo = document.getElementById('workbuscasLogo');
+      const telesenaBadge = document.getElementById('telesenaBadge');
+      const telesenaLogo = document.getElementById('telesenaLogo');
       
       const modules = {
         'gemeos': { name: 'Gemeos', badge: gemeosBadge, logo: gemeosLogo },
         'saude': { name: 'Saúde', badge: saudeBadge, logo: saudeLogo },
-        'workbuscas': { name: 'WorkBuscas', badge: workbuscasBadge, logo: workbuscasLogo }
+        'workbuscas': { name: 'WorkBuscas', badge: workbuscasBadge, logo: workbuscasLogo },
+        'telesena': { name: 'Telesena', badge: telesenaBadge, logo: telesenaLogo }
       };
       
       let hasActiveModules = false;
@@ -327,6 +342,9 @@
     });
     document.getElementById('workbuscasLogo').addEventListener('click', () => {
       ipcRenderer.send('module-selected', 'workbuscas');
+    });
+    document.getElementById('telesenaLogo').addEventListener('click', () => {
+      ipcRenderer.send('module-selected', 'telesena');
     });
   </script>
 </body>

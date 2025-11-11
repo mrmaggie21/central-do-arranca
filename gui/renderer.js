@@ -34,9 +34,9 @@ const validCount = document.getElementById('validCount');
 
 // Elementos do indicador de proxy
 const proxyLoadingIndicator = document.getElementById('proxyLoadingIndicator');
-const proxyLoadingText = proxyLoadingIndicator.querySelector('.proxy-loading-text');
-const proxyLoadingCount = proxyLoadingIndicator.querySelector('.proxy-loading-count');
-const proxyLoadingSubtitle = proxyLoadingIndicator.querySelector('.proxy-loading-subtitle');
+const proxyLoadingText = proxyLoadingIndicator ? proxyLoadingIndicator.querySelector('.proxy-loading-text') : null;
+const proxyLoadingCount = proxyLoadingIndicator ? proxyLoadingIndicator.querySelector('.proxy-loading-count') : null;
+const proxyLoadingSubtitle = proxyLoadingIndicator ? proxyLoadingIndicator.querySelector('.proxy-loading-subtitle') : null;
 
 let isRunning = false;
 let statsInterval;
@@ -140,53 +140,154 @@ ipcRenderer.on('log-message', (event, data) => {
 });
 
 ipcRenderer.on('proxy-loading-start', (event, data) => {
-    showProxyLoadingIndicator();
-    proxyLoadingText.textContent = '🌍 Carregando proxies...';
+    console.log('[RENDERER] proxy-loading-start recebido');
     proxyCount = 0;
-    updateProxyCount();
+    
+    // Busca elementos DIRETO do DOM
+    const indicator = document.getElementById('proxyLoadingIndicator');
+    console.log('[RENDERER] indicator encontrado:', !!indicator);
+    
+    if (indicator) {
+        const loadingText = indicator.querySelector('.proxy-loading-text');
+        const loadingSubtitle = indicator.querySelector('.proxy-loading-subtitle');
+        const loadingCount = indicator.querySelector('.proxy-loading-count');
+        
+        console.log('[RENDERER] Elementos encontrados:', {
+            text: !!loadingText,
+            subtitle: !!loadingSubtitle,
+            count: !!loadingCount
+        });
+        
+        if (loadingCount) {
+            loadingCount.textContent = '0/1000';
+            console.log('[RENDERER] Contador atualizado para: 0/1000');
+            proxyLoadingCount = loadingCount;
+        } else {
+            console.error('[RENDERER] ERRO: loadingCount não encontrado!');
+        }
+        if (loadingText) {
+            loadingText.textContent = '🌍 Carregando proxies...';
+            proxyLoadingText = loadingText;
+        }
+        if (loadingSubtitle) {
+            loadingSubtitle.textContent = '🌐 Conectando com API Webshare';
+            proxyLoadingSubtitle = loadingSubtitle;
+        }
+        
+        showProxyLoadingIndicator();
+        console.log('[RENDERER] Indicador mostrado');
+    } else {
+        console.error('[RENDERER] ERRO: indicator não encontrado no DOM!');
+    }
+    
     addLogEntry('info', `[${getCurrentTime()}] 🔄 Iniciando carregamento dos proxies...`);
 });
 
 ipcRenderer.on('proxy-loading-progress', (event, data) => {
-    proxyCount = data.count;
-    updateProxyCount();
+    const count = data.count || 0;
+    console.log('[RENDERER] proxy-loading-progress recebido com count:', count);
+    proxyCount = count;
     
-    // Atualiza texto baseado no progresso
-    if (proxyCount < 25) {
-        proxyLoadingText.textContent = '🌍 Carregando proxies...';
-        proxyLoadingSubtitle.textContent = '🌐 Conectando com API Webshare';
-    } else if (proxyCount < 100) {
-        proxyLoadingText.textContent = '🌐 Filtrando e validando proxies...';
-        proxyLoadingSubtitle.textContent = '🔎 Verificando disponibilidade';
-    } else if (proxyCount < 500) {
-        proxyLoadingText.textContent = '🧪 Testando proxies válidos...';
-        proxyLoadingSubtitle.textContent = '✅ Verificando conectividade';
-    } else {
-        proxyLoadingText.textContent = '✅ Finalizando carregamento...';
-        proxyLoadingSubtitle.textContent = '🎯 Otimizando para uso';
+    // Atualiza headerTitle também
+    const headerTitle = document.getElementById('headerTitle');
+    if (headerTitle) {
+        headerTitle.textContent = `Proxies carregados: ${count}`;
+        console.log(`[RENDERER] headerTitle atualizado para: Proxies carregados: ${count}`);
     }
     
-    // Mostra progresso a cada 100 proxies para não sobrecarregar o log
-    if (proxyCount % 100 === 0 || proxyCount === 25) {
-        addLogEntry('info', `[${getCurrentTime()}] 📊 Progresso: ${proxyCount}/1000 proxies carregados`);
+    // Atualiza contador DIRETAMENTE do DOM
+    const indicator = document.getElementById('proxyLoadingIndicator');
+    console.log('[RENDERER] indicator encontrado:', !!indicator);
+    
+    if (indicator) {
+        const loadingCount = indicator.querySelector('.proxy-loading-count');
+        console.log('[RENDERER] loadingCount encontrado:', !!loadingCount);
+        
+        if (loadingCount) {
+            loadingCount.textContent = `${count}/1000`;
+            console.log(`[RENDERER] Contador atualizado para: ${count}/1000`);
+            proxyLoadingCount = loadingCount;
+        } else {
+            console.error('[RENDERER] ERRO: loadingCount não encontrado no DOM!');
+            // Tenta buscar por classe direto
+            const allCounts = document.querySelectorAll('.proxy-loading-count');
+            console.log('[RENDERER] Tentando querySelectorAll, encontrados:', allCounts.length);
+            if (allCounts.length > 0) {
+                allCounts[0].textContent = `${count}/1000`;
+                console.log('[RENDERER] Contador atualizado via querySelectorAll');
+            }
+        }
+        
+        // Atualiza subtítulo também
+        const loadingSubtitle = indicator.querySelector('.proxy-loading-subtitle');
+        if (loadingSubtitle && count > 0) {
+            loadingSubtitle.textContent = `Progresso: ${count}/1000 proxies`;
+            console.log(`[RENDERER] Subtítulo atualizado para: Progresso: ${count}/1000 proxies`);
+            proxyLoadingSubtitle = loadingSubtitle;
+        }
+    } else {
+        console.error('[RENDERER] ERRO: indicator não encontrado no DOM!');
     }
 });
 
 ipcRenderer.on('proxy-loading-complete', (event, data) => {
-    proxyCount = data.total;
+    const total = data.total || 0;
+    console.log('[RENDERER] proxy-loading-complete recebido com total:', total);
+    proxyCount = total;
     proxiesLoaded = true;
-    updateProxyCount();
-    proxyLoadingText.textContent = '🎉 Proxies carregados!';
-    proxyLoadingSubtitle.textContent = `${data.total} proxies prontos`;
-    addLogEntry('success', `[${getCurrentTime()}] ✅ ${data.total} proxies carregados com sucesso!`);
-    addLogEntry('info', `[${getCurrentTime()}] 🌍 Sistema pronto para iniciar verificações!`);
-    const headerTitle = document.getElementById('headerTitle');
-    if (headerTitle) headerTitle.textContent = `Proxies carregados: ${data.total}`;
-    addLogEntry('info', `[${getCurrentTime()}] 🎮 Sistema pronto para iniciar verificações!`);
     
+    // Busca elementos DIRETAMENTE do DOM
+    const indicator = document.getElementById('proxyLoadingIndicator');
+    console.log('[RENDERER] indicator encontrado:', !!indicator);
+    
+    if (indicator) {
+        const loadingCount = indicator.querySelector('.proxy-loading-count');
+        console.log('[RENDERER] loadingCount encontrado:', !!loadingCount);
+        
+        if (loadingCount) {
+            loadingCount.textContent = `${total}/1000`;
+            console.log(`[RENDERER] Contador FINAL atualizado para: ${total}/1000`);
+            proxyLoadingCount = loadingCount;
+        } else {
+            console.error('[RENDERER] ERRO: loadingCount não encontrado em complete!');
+        }
+        
+        const loadingText = indicator.querySelector('.proxy-loading-text');
+        if (loadingText) {
+            loadingText.textContent = '🎉 Proxies carregados!';
+            proxyLoadingText = loadingText;
+        }
+        
+        const loadingSubtitle = indicator.querySelector('.proxy-loading-subtitle');
+        if (loadingSubtitle) {
+            loadingSubtitle.textContent = `${total} proxies prontos`;
+            proxyLoadingSubtitle = loadingSubtitle;
+        }
+    } else {
+        console.error('[RENDERER] ERRO: indicator não encontrado em complete!');
+    }
+    
+    addLogEntry('success', `[${getCurrentTime()}] ✅ ${total} proxies carregados com sucesso!`);
+    addLogEntry('info', `[${getCurrentTime()}] 🌍 Sistema pronto para iniciar verificações!`);
+    
+    const headerTitle = document.getElementById('headerTitle');
+    if (headerTitle) {
+        headerTitle.textContent = `Proxies carregados: ${total}`;
+    }
+    
+    // Esconde após 3 segundos
     setTimeout(() => {
+        if (proxyLoadingIndicator) {
+            hideProxyLoadingIndicator();
+        }
+    }, 3000);
+});
+
+// Handler para esconder indicador explicitamente (evita loops)
+ipcRenderer.on('proxy-loading-hide', () => {
+    if (proxyLoadingIndicator) {
         hideProxyLoadingIndicator();
-    }, 4000); // Mostra por 4 segundos para ler as informações
+    }
 });
 
 ipcRenderer.on('batch-info', (event, data) => {
@@ -206,6 +307,9 @@ ipcRenderer.on('cpf-checking', (event, data) => {
 });
 
 ipcRenderer.on('cpf-result', (event, data) => {
+    console.log('[RENDERER] DEBUG - cpf-result recebido:', JSON.stringify(data, null, 2));
+    console.log('[RENDERER] DEBUG - data.status:', data.status);
+    console.log('[RENDERER] DEBUG - data.cpf:', data.cpf);
     handleCPFResult(data);
 });
 
@@ -369,14 +473,14 @@ function updateCPFTable(cpf, status, proxy, timestamp, statusText = null) {
         recentCPFs[existingIndex].timestamp = timestamp;
       }
     } else {
-      // Adicionar novo CPF ao início do array
-      recentCPFs.unshift({
+    // Adicionar novo CPF ao início do array
+    recentCPFs.unshift({
         cpf: cpf,
         status: status,
         statusText: statusText || null,
         proxy: proxy || 'Sem Proxy',
         timestamp: timestamp || new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
-      });
+    });
     }
     
     // Manter apenas os últimos 20 CPFs
@@ -455,9 +559,23 @@ function renderCPFTable() {
 }
 
 function handleCPFResult(data) {
+    console.log('[RENDERER] DEBUG - handleCPFResult chamado com:', JSON.stringify(data, null, 2));
+    
+    if (!data) {
+        console.error('[RENDERER] ❌ handleCPFResult recebeu dados vazios!');
+        return;
+    }
+    
+    if (!data.cpf) {
+        console.error('[RENDERER] ❌ handleCPFResult recebeu dados sem CPF!');
+        return;
+    }
+    
     let statusClass = '';
     let statusText = '';
     let logMessage = '';
+    
+    console.log('[RENDERER] DEBUG - Processando status:', data.status);
     
     switch (data.status) {
         case 'registered':
@@ -634,7 +752,16 @@ function hideProxyLoadingIndicator() {
 }
 
 function updateProxyCount() {
-    proxyLoadingCount.textContent = `${proxyCount}/1000`;
+    // Busca elemento SEMPRE diretamente do DOM (não confia em variável global)
+    const indicator = document.getElementById('proxyLoadingIndicator');
+    if (indicator) {
+        const loadingCount = indicator.querySelector('.proxy-loading-count');
+        if (loadingCount) {
+            loadingCount.textContent = `${proxyCount}/1000`;
+            // Atualiza variável global também
+            proxyLoadingCount = loadingCount;
+        }
+    }
 }
 
 // Inicialização

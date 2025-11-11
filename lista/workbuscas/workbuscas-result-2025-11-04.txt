@@ -1,0 +1,31 @@
+═══════════════════════════════════════════════════════════
+CENTRAL DO ARRANCA - WORKBUSCAS CHECKER - RESULTADOS
+═══════════════════════════════════════════════════════════
+
+Data/Hora: 04/11/2025, 18:57:35
+Total verificados: 1
+CPFs encontrados: 1
+CPFs não encontrados: 0
+Erros: 0
+
+═══════════════════════════════════════════════════════════
+
+
+[1] CPF: 045.151.562-50
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Nome: YASMIM SANTOS DO VALE
+
+📞 TELEFONES (2):
+   1. 91991074960 (Não informado)
+   2. 91982828474 (Não informado)
+
+📧 EMAILS (1):
+   1. 9191074960y@gmail.com
+
+📅 Data de Nascimento: 03/08/1998
+👤 Nome da Mãe: NANCY RAMOS SANTOS
+💰 Renda: 744,88
+📊 Score CSB: 321
+
+Timestamp: 2025-11-04T21:57:35.164Z
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

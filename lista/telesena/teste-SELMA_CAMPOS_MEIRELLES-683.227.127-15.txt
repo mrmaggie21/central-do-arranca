@@ -1,0 +1,45 @@
+🔍 CENTRAL DO ARRANCA - TESTE DE CPF ESPECÍFICO (Telesena)
+=======================================================
+
+📅 Data/Hora: 11/11/2025, 17:12:01
+🔢 CPF: 683.227.127-15
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): c***@gmail.com
+📱 Final do Telefone: 6721
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: SELMA CAMPOS MEIRELLES
+   👩 Nome da Mãe: ANA AUGUSTA CAMPOS
+   📅 Data de Nascimento: 12/08/1968
+   📱 Telefones (21):
+      1. 2137873235 - TELEFONE RESIDENCIAL
+      2. 2123787323 - TELEFONE RESIDENCIAL
+      3. 1123787323 - TELEFONE RESIDENCIAL
+      4. 2177791912 - TELEFONE MÓVEL
+      5. 21964926721 - TELEFONE MÓVEL
+      6. 21964940853 (NEXTEL) - NO
+      7. 21970467744 (NEXTEL) - NO
+      8. 6133152425 (NO) - NO
+      9. 2137872833 - Não informado
+      10. 2137875134 - Não informado
+      11. 21987065972 - Não informado
+      12. 2177702207 - Não informado
+      13. 2177705202 - Não informado
+      14. 2178526219 - Não informado
+      15. 21974837531 - Não informado
+      16. 21994127910 - Não informado
+      17. 21976056106 (TELEFONIA) - Não informado
+      18. 21974527837 (TELEFONIA) - Não informado
+      19. 21971466441 (TELEFONIA) - Não informado
+      20. 21993519572 (TELEFONIA) - Não informado
+      21. 21967060101 (TELEFONIA) - Não informado
+   📧 Email: camposselma4@gmail.com
+   💰 Renda: R$ 467,90
+   📈 Score CSB: 63
+   🆔 RG: 079545075 - SSP - SECRETARIA DE SEGURANCA PUBLICA (RJ)
+      📅 Data de Emissão do RG: 2011-09-17
+
+=======================================================
+💾 Teste realizado via Interface Gráfica
+=======================================================

@@ -1,0 +1,28 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 19:12:00
+🔢 CPF: 60675852358
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): j***@hotmail.com
+📱 Final do Telefone: 4117
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: JACIEL PIRES SANTOS
+   👩 Nome da Mãe: MARIA FRANCISCA BARBOSA PIRES
+   📅 Data de Nascimento: 21/09/1994
+   📱 Telefones (4):
+      1. 98992434117 - TELEFONE MÓVEL
+      2. 98991476107 (VIVO) - MOVEL PREPAGO
+      3. 9834521001 (NO) - NO
+      4. 98991917168 - CELULAR
+   📧 Email: jacielpiressantos@hotmail.com
+   💰 Renda: R$ 318,66
+   📈 Score CSB: 369
+   🆔 RG: 04061441201 - SSP - SECRETARIA DE SEGURANCA PUBLICA (MA)
+      📅 Data de Emissão do RG: 2010-09-14
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

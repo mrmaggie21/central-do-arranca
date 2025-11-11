@@ -1,0 +1,26 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 20:03:06
+🔢 CPF: 06356568500
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): m***@gmail.com
+📱 Final do Telefone: 7901
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: MILENA MARINHO GOMES
+   👩 Nome da Mãe: MARIA CLARICE MARINHO GOMES
+   📅 Data de Nascimento: 25/10/1997
+   📱 Telefones (2):
+      1. 75999505062 - TELEFONE MÓVEL
+      2. 75982788439 - CELULAR
+   📧 Email: milenamarinhogomes132@gmail.com
+   💰 Renda: R$ 459,97
+   📈 Score CSB: 781
+   🆔 RG: 1505866553 - SSP - SECRETARIA DE SEGURANCA PUBLICA (BA)
+      📅 Data de Emissão do RG: 2006-08-03
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

@@ -1,0 +1,27 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 18:50:58
+🔢 CPF: 10311413757
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): a***@gmail.com
+📱 Final do Telefone: 0773
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: ANGELA DE SOUZA GALITO
+   👩 Nome da Mãe: MAURILIA DE SOUZA GALITO
+   📅 Data de Nascimento: 11/02/1980
+   📱 Telefones (5):
+      1. 2124033088 - TELEFONE RESIDENCIAL
+      2. 21971064350 - TELEFONE MÓVEL
+      3. 2137965106 - TELEFONE RESIDENCIAL
+      4. 21975061692 (CLARO) - NO
+      5. 21974969892 - CELULAR
+   📧 Email: angelagalitogalito@gmail.com
+   💰 Renda: R$ 608,84
+   📈 Score CSB: 352
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

@@ -1,0 +1,33 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 20:19:38
+🔢 CPF: 12421300711
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): l***@gmail.com
+📱 Final do Telefone: 5625
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: LETICIA OLIVEIRA CASTRO
+   👩 Nome da Mãe: LAURA DE OLIVEIRA CASTRO
+   📅 Data de Nascimento: 04/12/1987
+   📱 Telefones (9):
+      1. 24988426608 - TELEFONE MÓVEL
+      2. 24999591884 - TELEFONE MÓVEL
+      3. 24999562190 - TELEFONE MÓVEL
+      4. 24974025625 - TELEFONE MÓVEL
+      5. 243326-1109 - Não informado
+      6. 24988583592 (OI) - PRE PAGO
+      7. 24988594243 (OI) - PRE PAGO
+      8. 2433243934 (NO) - NO
+      9. 24998491437 (TELEFONIA) - Não informado
+   📧 Email: leticiaocastro@gmail.com
+   💰 Renda: R$ 559,66
+   📈 Score CSB: 781
+   🆔 RG: 208845883 - SSP - SECRETARIA DE SEGURANCA PUBLICA (RJ)
+      📅 Data de Emissão do RG: 2002-01-21
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

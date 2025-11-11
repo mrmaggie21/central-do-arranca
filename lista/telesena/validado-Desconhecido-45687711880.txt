@@ -1,0 +1,32 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 18:21:45
+🔢 CPF: 45687711880
+✅ Status: CADASTRADO
+🧪 Tipo: VERIFICAÇÃO AUTOMÁTICA
+
+📝 Tipo de Cadastro: Completo
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: ARLETE CRISTINA DA SILVA
+   👩 Nome da Mãe: CRISTINA MARIA DA SILVA
+   📅 Data de Nascimento: 03/06/1998
+   📱 Telefones (1):
+      1. 11954966831 - TELEFONE MÓVEL
+   📧 Email: arletecris15@hotmail.com
+   🆔 RG: 39646161X - SSP - SECRETARIA DE SEGURANCA PUBLICA (SP)
+      📅 Data de Emissão do RG: 2005-10-07
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📱 Telefones (1):
+      1. 11954966831 - TELEFONE MÓVEL
+   📧 Email: arletecris15@hotmail.com
+   👩 Nome da Mãe: CRISTINA MARIA DA SILVA
+   📅 Data de Nascimento: 03/06/1998
+   🆔 RG: 39646161X - SSP - SECRETARIA DE SEGURANCA PUBLICA (SP)
+   📅 Data de Emissão do RG: 2005-10-07
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

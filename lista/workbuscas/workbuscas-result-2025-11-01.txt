@@ -2,7 +2,7 @@
 CENTRAL DO ARRANCA - WORKBUSCAS CHECKER - RESULTADOS
 ═══════════════════════════════════════════════════════════
 
-Data/Hora: 01/11/2025, 15:50:26
+Data/Hora: 01/11/2025, 16:37:40
 Total verificados: 1
 CPFs encontrados: 1
 CPFs não encontrados: 0
@@ -11,24 +11,29 @@ Erros: 0
 ═══════════════════════════════════════════════════════════
 
 
-[1] CPF: 074.115.064-60
+[1] CPF: 451.483.158-14
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Nome: ANAILTON FERNANDES DA SILVA
+Nome: LUCAS NUNES BARBOSA
 
-📞 TELEFONES (5):
-   1. 82988383437 (Não informado)
-   2. 82999331988 (Não informado)
-   3. 82988383374 (Não informado)
-   4. 82988213961 (Não informado)
-   5. 82988987514 (Não informado)
+📞 TELEFONES (8):
+   1. 1125183699 (Não informado)
+   2. 19986714341 (Não informado)
+   3. 11996994883 (Não informado)
+   4. 11969338249 (Não informado)
+   5. 11988551400 (Não informado)
+   6. 11965710659 (CLARO)
+   7. 1140555487 (Não informado)
+   8. 1125169035 (Não informado)
 
-📧 EMAILS (1):
-   1. fatsales@uol.com.br
+📧 EMAILS (3):
+   1. lucas12339@gmail.com
+   2. elivemmo@gmail.com
+   3. acessoprivado00@gmail.com
 
-📅 Data de Nascimento: 20/07/1990
-👤 Nome da Mãe: ANA CELIA SUPRIANO DA SILVA
-💰 Renda: 284,93
-📊 Score CSB: 258
+📅 Data de Nascimento: 04/07/1994
+👤 Nome da Mãe: DILNETE NUNES BARBOSA
+💰 Renda: 443,37
+📊 Score CSB: 350
 
-Timestamp: 2025-11-01T18:50:26.691Z
+Timestamp: 2025-11-01T19:37:40.700Z
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

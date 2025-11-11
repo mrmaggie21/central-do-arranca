@@ -1,0 +1,30 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 19:35:44
+🔢 CPF: 01573404497
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): n***@gmail.com
+📱 Final do Telefone: 0293
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: NICODEMOS DE SOUZA GALDINO
+   👩 Nome da Mãe: MARIA DO LIVRAMENTO DE SOUZA
+   📅 Data de Nascimento: 27/11/1988
+   📱 Telefones (6):
+      1. 83981160479 - TELEFONE MÓVEL
+      2. 83982070293 - TELEFONE MÓVEL
+      3. 8382070293 (VIVO) - NO
+      4. 83981251818 (VIVO) - MOVEL PREPAGO
+      5. 37998226762 (VIVO) - MOVEL PREPAGO
+      6. 8333961593 (NO) - NO
+   📧 Email: nicosouza99@gmail.com
+   💰 Renda: R$ 434,86
+   📈 Score CSB: 765
+   🆔 RG: 3621513 - SSP - SECRETARIA DE SEGURANCA PUBLICA (PB)
+      📅 Data de Emissão do RG: 2008-01-23
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

@@ -1,0 +1,33 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 19:25:53
+🔢 CPF: 13158563797
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): m***@hotmail.com
+📱 Final do Telefone: 3880
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: MOISES RODRIGUES DA SILVA
+   👩 Nome da Mãe: MANOELA MAIA RODRIGUES
+   📅 Data de Nascimento: 09/06/1989
+   📱 Telefones (12):
+      1. 2127768678 - TELEFONE RESIDENCIAL
+      2. 2177694321 - TELEFONE MÓVEL
+      3. 21985569068 - TELEFONE MÓVEL
+      4. 21964853880 - TELEFONE MÓVEL
+      5. 2177407170 - TELEFONE MÓVEL
+      6. 21964234139 (NEXTEL) - NO
+      7. 21964899094 (NEXTEL) - NO
+      8. 21964776287 (NEXTEL) - NO
+      9. 21975110776 (CLARO) - NO
+      10. 21966175714 (CLARO) - NO
+      11. 2127762518 - Não informado
+      12. 21973473475 - CELULAR
+   📧 Email: moises22rodrigues@hotmail.com
+   📈 Score CSB: 465
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

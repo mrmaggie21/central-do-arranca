@@ -1,0 +1,29 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 20:10:59
+🔢 CPF: 00853150109
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): c***@gmail.com
+📱 Final do Telefone: 0218
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: CASSIANA AUXILIADORA DOS REIS FLANOFA
+   👩 Nome da Mãe: FELIPA ANTONIA DE ARRUDA DOS REIS
+   📅 Data de Nascimento: 08/07/1978
+   📱 Telefones (6):
+      1. 6536266489 - TELEFONE RESIDENCIAL
+      2. 65999040218 - TELEFONE MÓVEL
+      3. 65999866934 - TELEFONE MÓVEL
+      4. 65999158756 - TELEFONE MÓVEL
+      5. 6521275826 - TELEFONE RESIDENCIAL
+      6. 6599040218 (VIVO) - NO
+   💰 Renda: R$ 695,60
+   📈 Score CSB: 191
+   🆔 RG: 1379131 - SSP - SECRETARIA DE SEGURANCA PUBLICA (MT)
+      📅 Data de Emissão do RG: 1999-03-02
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

@@ -1,0 +1,50 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 18:21:15
+🔢 CPF: 12511238721
+✅ Status: CADASTRADO
+🧪 Tipo: VERIFICAÇÃO AUTOMÁTICA
+
+📝 Tipo de Cadastro: Completo
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: JORGE FELIPE SILVA DOS SANTOS
+   👩 Nome da Mãe: MARGARETE SILVA DE SOUZA
+   📅 Data de Nascimento: 18/02/1989
+   📱 Telefones (10):
+      1. 2137692065 - TELEFONE RESIDENCIAL
+      2. 21968092128 - TELEFONE MÓVEL
+      3. 21966047344 - TELEFONE MÓVEL
+      4. 21985411641 (OI) - POS PAGO
+      5. 2137692181 (NO) - NO
+      6. 21965124944 (TELEFONIA) - Não informado
+      7. 21970453116 (TELEFONIA) - Não informado
+      8. 21970454131 (TELEFONIA) - Não informado
+      9. 21967757344 (TELEFONIA) - Não informado
+      10. 21966421998 - CELULAR
+   📧 Email: felipesds20@yahoo.com
+   🆔 RG: 234656536 - SSP - SECRETARIA DE SEGURANCA PUBLICA (RJ)
+      📅 Data de Emissão do RG: 2005-07-25
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📱 Telefones (10):
+      1. 2137692065 - TELEFONE RESIDENCIAL
+      2. 21968092128 - TELEFONE MÓVEL
+      3. 21966047344 - TELEFONE MÓVEL
+      4. 21985411641 (OI) - POS PAGO
+      5. 2137692181 (NO) - NO
+      6. 21965124944 (TELEFONIA) - Não informado
+      7. 21970453116 (TELEFONIA) - Não informado
+      8. 21970454131 (TELEFONIA) - Não informado
+      9. 21967757344 (TELEFONIA) - Não informado
+      10. 21966421998 - CELULAR
+   📧 Email: felipesds20@yahoo.com
+   👩 Nome da Mãe: MARGARETE SILVA DE SOUZA
+   📅 Data de Nascimento: 18/02/1989
+   🆔 RG: 234656536 - SSP - SECRETARIA DE SEGURANCA PUBLICA (RJ)
+   📅 Data de Emissão do RG: 2005-07-25
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

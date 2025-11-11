@@ -1,0 +1,30 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 19:13:05
+🔢 CPF: 14324562881
+✅ Status: CADASTRADO
+
+📧 Email (mascarado): a***@hotmail.com
+📱 Final do Telefone: 8948
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: FABIO SOARES DO AMARAL
+   👩 Nome da Mãe: OLIVIA SOARES AMARAL
+   📅 Data de Nascimento: 11/04/1971
+   📱 Telefones (8):
+      1. 1139980692 - TELEFONE RESIDENCIAL
+      2. 1139483942 - TELEFONE COMERCIAL
+      3. 11977775050 - TELEFONE MÓVEL
+      4. 1140508948 - TELEFONE RESIDENCIAL
+      5. 11989990681 - TELEFONE MÓVEL
+      6. 11940508948 (CLARO) - NO
+      7. 1139756172 - Não informado
+      8. 95979400073 - Não informado
+   📧 Email: fabiogeousp@hotmail.com
+   💰 Renda: R$ 4769,42
+   📈 Score CSB: 606
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

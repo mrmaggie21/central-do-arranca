@@ -1,0 +1,48 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 18:19:15
+🔢 CPF: 16787723806
+✅ Status: CADASTRADO
+🧪 Tipo: VERIFICAÇÃO AUTOMÁTICA
+
+📝 Tipo de Cadastro: Completo
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📛 Nome Completo: MARCIEL ANTONIO FORNAZIM
+   👩 Nome da Mãe: BRASILINA SCARCO FORNAZIM
+   📅 Data de Nascimento: 23/11/1969
+   📱 Telefones (9):
+      1. 1934078429 - TELEFONE RESIDENCIAL
+      2. 19992234203 - TELEFONE MÓVEL
+      3. 19992833214 - TELEFONE MÓVEL
+      4. 1934061283 - TELEFONE RESIDENCIAL
+      5. 1134078429 - TELEFONE RESIDENCIAL
+      6. 19992860252 (CLARO) - NO
+      7. 19992600934 (CLARO) - NO
+      8. 19991730974 (CLARO) - NO
+      9. 19971653060 - Não informado
+   📧 Email: marcielfornazim@gmail.com
+   🆔 RG: 175699914 - SSP - SECRETARIA DE SEGURANCA PUBLICA (SP)
+      📅 Data de Emissão do RG: 2010-02-04
+
+📊 DADOS COMPLEMENTARES (WorkBuscas):
+   📱 Telefones (9):
+      1. 1934078429 - TELEFONE RESIDENCIAL
+      2. 19992234203 - TELEFONE MÓVEL
+      3. 19992833214 - TELEFONE MÓVEL
+      4. 1934061283 - TELEFONE RESIDENCIAL
+      5. 1134078429 - TELEFONE RESIDENCIAL
+      6. 19992860252 (CLARO) - NO
+      7. 19992600934 (CLARO) - NO
+      8. 19991730974 (CLARO) - NO
+      9. 19971653060 - Não informado
+   📧 Email: marcielfornazim@gmail.com
+   👩 Nome da Mãe: BRASILINA SCARCO FORNAZIM
+   📅 Data de Nascimento: 23/11/1969
+   🆔 RG: 175699914 - SSP - SECRETARIA DE SEGURANCA PUBLICA (SP)
+   📅 Data de Emissão do RG: 2010-02-04
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

@@ -1,0 +1,15 @@
+🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (Telesena)
+=======================================================
+
+📅 Data/Hora: 04/11/2025, 17:51:20
+🔢 CPF: 00243658230
+✅ Status: CADASTRADO
+🧪 Tipo: VERIFICAÇÃO AUTOMÁTICA
+
+📝 Tipo de Cadastro: Aguardando ativação
+📧 Email (mascarado): r*******7@g***l.com
+📱 Final do Telefone: 0724
+
+=======================================================
+💾 Salvo automaticamente pela Interface Gráfica
+=======================================================

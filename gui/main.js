@@ -1,9 +1,39 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
-const CPFGenerator = require('../cpf-generator');
+// Função simples de geração de CPF (substitui cpf-generator.js)
+function generateCPF() {
+  const n1 = Math.floor(Math.random() * 9);
+  const n2 = Math.floor(Math.random() * 9);
+  const n3 = Math.floor(Math.random() * 9);
+  const n4 = Math.floor(Math.random() * 9);
+  const n5 = Math.floor(Math.random() * 9);
+  const n6 = Math.floor(Math.random() * 9);
+  const n7 = Math.floor(Math.random() * 9);
+  const n8 = Math.floor(Math.random() * 9);
+  const n9 = Math.floor(Math.random() * 9);
+  
+  let d1 = n9*2 + n8*3 + n7*4 + n6*5 + n5*6 + n4*7 + n3*8 + n2*9 + n1*10;
+  d1 = 11 - (d1 % 11);
+  if (d1 >= 10) d1 = 0;
+  
+  let d2 = d1*2 + n9*3 + n8*4 + n7*5 + n6*6 + n5*7 + n4*8 + n3*9 + n2*10 + n1*11;
+  d2 = 11 - (d2 % 11);
+  if (d2 >= 10) d2 = 0;
+  
+  return `${n1}${n2}${n3}${n4}${n5}${n6}${n7}${n8}${n9}${d1}${d2}`;
+}
+
+function generateMultipleCPFs(count) {
+  const cpfs = [];
+  for (let i = 0; i < count; i++) {
+    cpfs.push(generateCPF());
+  }
+  return cpfs;
+}
 const GemeosChecker = require('../modules/gemeos/checker');
 const SaudeChecker = require('../modules/saude/checker');
 const WorkBuscasChecker = require('../modules/workbuscas/checker');
+const TelesenaChecker = require('../modules/telesena/checker');
 const Updater = require('../updater');
 const fs = require('fs-extra');
 
@@ -43,6 +73,8 @@ function createWindow(moduleName = 'gemeos') {
     htmlFile = 'saude-checker.html';
   } else if (moduleName === 'workbuscas') {
     htmlFile = 'workbuscas-checker.html';
+  } else if (moduleName === 'telesena') {
+    htmlFile = 'telesena-checker.html';
   } else {
     htmlFile = 'gemeos-checker.html'; // fallback
   }
@@ -74,6 +106,7 @@ function createWindow(moduleName = 'gemeos') {
 }
 
 function createSplash() {
+  // Splash screen criada
   splashWindow = new BrowserWindow({
     width: 720,
     height: 520,
@@ -86,33 +119,98 @@ function createSplash() {
   });
   splashWindow.loadFile(path.join(__dirname, 'splash.html'));
   
+  // Aguardando carregamento do splash
+  
   // Aguarda a splash estar pronta antes de verificar atualizações
   return new Promise((resolve) => {
     splashWindow.webContents.once('did-finish-load', () => {
+      // Splash HTML carregado
       // Aguarda mais um pouco para garantir que o JS está rodando
       setTimeout(() => {
+        // Splash pronta
         resolve();
       }, 300);
+    });
+    
+    splashWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+      console.error('[Splash] ERRO ao carregar splash:', errorCode, errorDescription);
     });
   });
 }
 
 function createModuleSelector() {
+  // Criando seletor de módulos
+  
+  // Se já existe e não está destruída, não cria novamente
+  if (moduleSelectorWindow && !moduleSelectorWindow.isDestroyed()) {
+    // Janela já existe, focando
+    moduleSelectorWindow.show();
+    moduleSelectorWindow.focus();
+    return;
+  }
+  
   moduleSelectorWindow = new BrowserWindow({
     width: 800,
     height: 600,
     resizable: false,
     frame: false,
-    alwaysOnTop: true,
+    alwaysOnTop: false, // Mudado para false para não conflitar com splash
     transparent: false,
+    show: true, // Mostra imediatamente
     webPreferences: { nodeIntegration: true, contextIsolation: false }
   });
-  moduleSelectorWindow.loadFile(path.join(__dirname, 'module-selector.html'));
+  
+  const htmlPath = path.join(__dirname, 'module-selector.html');
+  // Verificando arquivo HTML do seletor
+  
+  if (!fs.existsSync(htmlPath)) {
+    console.error('[ModuleSelector] ❌ ERRO CRÍTICO: Arquivo module-selector.html não encontrado!');
+    console.error('[ModuleSelector] Procurando em:', __dirname);
+    const files = fs.readdirSync(__dirname);
+    console.error('[ModuleSelector] Arquivos disponíveis:', files);
+    return;
+  }
+  
+  moduleSelectorWindow.loadFile(htmlPath);
   moduleSelectorWindow.center();
+  
+  // Aguardando carregamento HTML do seletor
   
   // Atualiza o status quando o menu carregar
   moduleSelectorWindow.webContents.once('did-finish-load', () => {
+    // HTML do seletor carregado
     updateModuleSelectorStatus();
+    // Garante que está visível
+    if (moduleSelectorWindow && !moduleSelectorWindow.isDestroyed()) {
+      moduleSelectorWindow.show();
+      moduleSelectorWindow.focus();
+      // Janela visível e focada
+    } else {
+      console.error('[ModuleSelector] ❌ Janela foi destruída após carregar!');
+    }
+  });
+  
+  // Log de erro se houver
+  moduleSelectorWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.error('[ModuleSelector] ❌ ERRO ao carregar HTML!');
+    console.error('[ModuleSelector] Error Code:', errorCode);
+    console.error('[ModuleSelector] Description:', errorDescription);
+    console.error('[ModuleSelector] URL:', validatedURL);
+  });
+  
+  // Log quando está pronto para mostrar
+  moduleSelectorWindow.once('ready-to-show', () => {
+    // Janela pronta para mostrar
+    if (moduleSelectorWindow && !moduleSelectorWindow.isDestroyed()) {
+      moduleSelectorWindow.show();
+      moduleSelectorWindow.focus();
+      // Janela mostrada
+    }
+  });
+  
+  // Log quando a janela é mostrada
+  moduleSelectorWindow.on('show', () => {
+    // Evento show disparado
   });
 }
 
@@ -267,48 +365,208 @@ app.whenReady().then(async () => {
     delay: 2000,
     timeout: 15000
   });
+  checkers['telesena'] = new TelesenaChecker({
+    delay: 2000,
+    timeout: 15000,
+    maxRetries: 2
+  });
   
-  // Carrega proxies do Gemeos (módulo principal por enquanto)
+  // Carrega proxies do Gemeos E Saúde na inicialização
   const gemeosChecker = checkers['gemeos'];
+  const saudeChecker = checkers['saude'];
   
   // Progresso no splash
   const progressCallback = (count) => {
     if (splashWindow && !splashWindow.isDestroyed()) {
-      splashWindow.webContents.send('splash-progress', { count });
-      if (count % 50 === 0) splashWindow.webContents.send('splash-log', `Recebidos ${count} proxies...`);
+      // Normaliza para máximo 1000 (pode vir mais se estiver testando)
+      const normalizedCount = Math.min(count, 1000);
+      splashWindow.webContents.send('splash-progress', { count: normalizedCount });
+      // Log a cada 100 proxies ou quando completa
+      if (count > 0 && (count % 100 === 0 || count >= 1000)) {
+        const message = count >= 1000 
+          ? `✅ ${normalizedCount} proxies carregados!` 
+          : `✅ ${count} proxies carregados...`;
+        splashWindow.webContents.send('splash-log', message);
+      }
     }
   };
   try {
-    // Sinaliza início
+    // Sinaliza início (splash-start atualiza status, splash-log adiciona no log)
     if (splashWindow && !splashWindow.isDestroyed()) {
       splashWindow.webContents.send('splash-start');
-      splashWindow.webContents.send('splash-log', 'Iniciando carregamento dos proxies...');
+      splashWindow.webContents.send('splash-log', 'Carregando proxies da Webshare...');
     }
     const start = Date.now();
+    // Carregando proxies do Gemeos...
+    
+    // Carrega proxies do Gemeos
     await gemeosChecker.loadProxies(progressCallback);
-    // Garante duração mínima de 3500ms para visualizar carregamento
-    const elapsed = Date.now() - start;
-    if (elapsed < 3500) {
-      await new Promise(r => setTimeout(r, 3500 - elapsed));
+    // Gemeos proxies carregados
+    
+    // Força completar progresso se ainda não completou
+    if (progressCallback) {
+      // Forçando progresso
+      progressCallback(1000);
     }
+    
+    // Carrega proxies do Saúde também (sem mostrar progresso no splash)
+    // FAZ EM PARALELO/ASSÍNCRONO PARA NÃO TRAVAR
+    // ADICIONA DELAY MAIOR PARA EVITAR RATE LIMIT COM GEMEOS
+    if (saudeChecker && (!saudeChecker.proxies || saudeChecker.proxies.length === 0)) {
+      // Carregando proxies do Saúde em background...
+      // Aguarda 10 segundos antes de iniciar para não conflitar com Gemeos (aumentado)
+      setTimeout(() => {
+        console.log('[GUI] Iniciando carregamento de proxies do Saúde agora...');
+        saudeChecker.loadProxies(null).then(() => {
+          console.log(`[GUI] ✅ Saúde proxies carregados: ${saudeChecker.proxies.length}`);
+        }).catch((err) => {
+          if (err.response?.status === 429) {
+            // Saúde: Rate limit detectado, usando cache
+            // Se tiver cache, tenta carregar do cache
+            const cachePath = require('path').join(__dirname, '../.cache/proxies-saude.json');
+            const fs = require('fs-extra');
+            if (fs.existsSync(cachePath)) {
+              try {
+                const cacheData = fs.readJsonSync(cachePath);
+                if (cacheData.proxies && cacheData.proxies.length > 0) {
+                  saudeChecker.proxies = cacheData.proxies;
+                  // Saúde: Proxies carregados do cache
+                }
+              } catch (e) {
+                // Não foi possível carregar cache do Saúde
+              }
+            }
+          } else {
+            console.error(`[GUI] ❌ Erro ao carregar proxies do Saúde:`, err.message);
+          }
+        });
+      }, 10000); // 10 segundos de delay (aumentado para evitar rate limit)
+      // Saúde carregando em background
+    }
+    
+    // Garante duração mínima de 1000ms para visualizar carregamento (reduzido)
+    const elapsed = Date.now() - start;
+    console.log(`[GUI] Tempo decorrido: ${elapsed}ms`);
+    if (elapsed < 1000) {
+      const remaining = 1000 - elapsed;
+      console.log(`[GUI] Aguardando mais ${remaining}ms para completar animação...`);
+      await new Promise(r => setTimeout(r, remaining));
+    } else {
+      console.log(`[GUI] Tempo suficiente decorrido, prosseguindo imediatamente`);
+    }
+    
+    // Força progresso final
+    if (progressCallback) {
+      progressCallback(1000);
+    }
+    
     if (splashWindow && !splashWindow.isDestroyed()) {
       const totalValid = gemeosChecker?.proxies?.length || 0;
-      splashWindow.webContents.send('splash-log', `Teste concluído: ${totalValid} proxies válidos.`);
+      const totalSaude = saudeChecker?.proxies?.length || 0;
+      splashWindow.webContents.send('splash-log', `✅ ${totalValid} proxies Gemeos carregados`);
+      if (totalSaude > 0) {
+        splashWindow.webContents.send('splash-log', `✅ ${totalSaude} proxies Saúde carregados`);
+      }
       splashWindow.webContents.send('splash-log', 'Preparando interface...');
+      // Força progresso final na UI
+      splashWindow.webContents.send('splash-progress', { count: 1000 });
     }
+    // Carregamento de proxies concluído
   } catch (e) {
+    console.error('[Splash] ❌❌❌ ERRO ao carregar proxies:', e);
+    console.error('[Splash] Stack:', e.stack);
+    // Completa progresso mesmo em erro para não travar
+    if (progressCallback) {
+      progressCallback(1000);
+    }
+    if (splashWindow && !splashWindow.isDestroyed()) {
+      splashWindow.webContents.send('splash-progress', { count: 1000 });
+      splashWindow.webContents.send('splash-log', '⚠️ Erro ao carregar alguns proxies, continuando...');
+    }
+    // Carregamento concluído (com erros)
     // Ignora; seguirá com o que houver
   }
-  // Cria a tela de seleção de módulo ANTES de fechar a splash
-  createModuleSelector();
   
-  // Aguarda um pouco e fecha a splash
-  setTimeout(() => {
-    if (splashWindow && !splashWindow.isDestroyed()) {
+  // TRANSIÇÃO ULTRA SIMPLIFICADA - SEM AWAITS DESNECESSÁRIOS
+  // Iniciando transição para seletor de módulos
+  
+  // Força progresso final
+  if (progressCallback) progressCallback(1000);
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    splashWindow.webContents.send('splash-progress', { count: 1000 });
+    splashWindow.webContents.send('splash-log', '✅ Carregamento completo!');
+  }
+  
+  // Criando module selector
+  if (!moduleSelectorWindow || moduleSelectorWindow.isDestroyed()) {
+    createModuleSelector();
+  } else {
+    moduleSelectorWindow.show();
+    moduleSelectorWindow.focus();
+  }
+  
+  // Aguarda apenas 300ms para HTML carregar (reduzido ao mínimo)
+  await new Promise(r => setTimeout(r, 300));
+  
+  // Fechando splash
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    try {
+      splashWindow.setAlwaysOnTop(false);
+      splashWindow.hide();
       splashWindow.close();
       splashWindow = null;
+    } catch (e) {
+      console.error('[Splash] Erro ao fechar splash:', e);
+      try {
+        splashWindow.destroy();
+        splashWindow = null;
+      } catch (e2) {}
     }
-  }, 300);
+  }
+  
+  // Garantindo module selector visível
+  if (moduleSelectorWindow && !moduleSelectorWindow.isDestroyed()) {
+    moduleSelectorWindow.show();
+    moduleSelectorWindow.focus();
+    moduleSelectorWindow.moveTop();
+  } else {
+    createModuleSelector();
+    setTimeout(() => {
+      if (moduleSelectorWindow && !moduleSelectorWindow.isDestroyed()) {
+        moduleSelectorWindow.show();
+        moduleSelectorWindow.focus();
+      }
+    }, 300);
+  }
+  
+  // Garantia final - força transição após 1 segundo
+  setTimeout(() => {
+    if (splashWindow && !splashWindow.isDestroyed()) {
+      try {
+        splashWindow.setAlwaysOnTop(false);
+        splashWindow.hide();
+        splashWindow.close();
+        splashWindow.destroy();
+        splashWindow = null;
+      } catch (e) {
+        splashWindow = null;
+      }
+    }
+    
+    if (!moduleSelectorWindow || moduleSelectorWindow.isDestroyed()) {
+      try {
+        createModuleSelector();
+      } catch (e) {}
+    }
+    
+    setTimeout(() => {
+      if (moduleSelectorWindow && !moduleSelectorWindow.isDestroyed()) {
+        moduleSelectorWindow.show();
+        moduleSelectorWindow.focus();
+        moduleSelectorWindow.moveTop();
+      }
+    }, 200);
+  }, 1000);
 });
 
 app.on('window-all-closed', () => {
@@ -329,22 +587,120 @@ app.on('activate', () => {
 
 // IPC Handlers
 ipcMain.on('module-selected', async (event, moduleName) => {
-  if (moduleName === 'gemeos' || moduleName === 'saude' || moduleName === 'workbuscas') {
+  if (moduleName === 'gemeos' || moduleName === 'saude' || moduleName === 'workbuscas' || moduleName === 'telesena') {
     // Apenas cria a janela do checker se não existir ainda
     if (!activeModules[moduleName] || activeModules[moduleName].window.isDestroyed()) {
       const moduleWindow = createWindow(moduleName);
       
-      moduleWindow.webContents.once('did-finish-load', () => {
+      // LÓGICA IGUAL AO GEMEOS - MAS CARREGA PROXIES SE PRECISAR
+      moduleWindow.webContents.once('did-finish-load', async () => {
         if (moduleName === 'workbuscas') {
           // WorkBuscas não usa proxies
           moduleWindow.webContents.send('log-message', { type: 'success', message: `✅ WorkBuscas Checker pronto para uso!` });
-        } else {
-          moduleWindow.webContents.send('proxy-loading-start');
+        } else if (moduleName === 'telesena') {
+          // Telesena usa proxies (mesmo comportamento do Gemeos/Saúde)
           const moduleChecker = checkers[moduleName];
-          const total = moduleChecker?.proxies?.length || 0;
-          moduleWindow.webContents.send('proxy-loading-progress', { count: total });
-          moduleWindow.webContents.send('proxy-loading-complete', { total });
-          moduleWindow.webContents.send('log-message', { type: 'success', message: `✅ ${total} proxies carregados com sucesso!` });
+          
+          if (moduleChecker.proxies && moduleChecker.proxies.length > 0) {
+            const total = moduleChecker.proxies.length;
+            moduleWindow.webContents.send('proxy-loading-start');
+            moduleWindow.webContents.send('proxy-loading-progress', { count: total });
+            moduleWindow.webContents.send('proxy-loading-complete', { total });
+            moduleWindow.webContents.send('log-message', { type: 'success', message: `✅ ${total} proxies carregados com sucesso!` });
+          } else {
+            moduleWindow.webContents.send('proxy-loading-start');
+            moduleWindow.webContents.send('log-message', {
+              type: 'info',
+              message: '🔄 Carregando proxies...'
+            });
+            
+            const progressCallback = (count) => {
+              if (moduleWindow && !moduleWindow.isDestroyed()) {
+                moduleWindow.webContents.send('proxy-loading-progress', { count });
+              }
+            };
+            
+            try {
+              await moduleChecker.loadProxies(progressCallback);
+              const total = moduleChecker.proxies.length;
+              
+              if (moduleWindow && !moduleWindow.isDestroyed()) {
+                moduleWindow.webContents.send('proxy-loading-progress', { count: total });
+                moduleWindow.webContents.send('proxy-loading-complete', { total });
+                moduleWindow.webContents.send('log-message', {
+                  type: 'success',
+                  message: `✅ ${total} proxies carregados com sucesso!`
+                });
+              }
+            } catch (error) {
+              console.error(`[${moduleName}] ERRO:`, error);
+              const total = moduleChecker.proxies?.length || 0;
+              if (moduleWindow && !moduleWindow.isDestroyed()) {
+                moduleWindow.webContents.send('proxy-loading-progress', { count: total });
+                moduleWindow.webContents.send('proxy-loading-complete', { total });
+                moduleWindow.webContents.send('log-message', {
+                  type: 'error',
+                  message: `❌ Erro: ${error.message}`
+                });
+              }
+            }
+          }
+        } else {
+          const moduleChecker = checkers[moduleName];
+          
+          // Verifica se tem proxies carregados na memória PRIMEIRO
+          if (moduleChecker.proxies && moduleChecker.proxies.length > 0) {
+            // JÁ TEM PROXIES NA MEMÓRIA - usa direto (igual Gemeos)
+            const total = moduleChecker.proxies.length;
+            // Proxies já carregados na memória
+            moduleWindow.webContents.send('proxy-loading-start');
+            moduleWindow.webContents.send('proxy-loading-progress', { count: total });
+            moduleWindow.webContents.send('proxy-loading-complete', { total });
+            moduleWindow.webContents.send('log-message', { type: 'success', message: `✅ ${total} proxies carregados com sucesso!` });
+          } else {
+            // NÃO TEM PROXIES - carrega (vai usar cache se tiver)
+            // Carregando proxies...
+            moduleWindow.webContents.send('proxy-loading-start');
+            moduleWindow.webContents.send('log-message', {
+              type: 'info',
+              message: '🔄 Carregando proxies...'
+            });
+            
+            // Callback para progresso
+            const progressCallback = (count) => {
+              // Progresso: proxies carregados
+              if (moduleWindow && !moduleWindow.isDestroyed()) {
+                moduleWindow.webContents.send('proxy-loading-progress', { count });
+              }
+            };
+            
+            try {
+              await moduleChecker.loadProxies(progressCallback);
+              const total = moduleChecker.proxies.length;
+              // Proxies carregados
+              
+              if (moduleWindow && !moduleWindow.isDestroyed()) {
+                moduleWindow.webContents.send('proxy-loading-progress', { count: total });
+                moduleWindow.webContents.send('proxy-loading-complete', { total });
+                moduleWindow.webContents.send('log-message', {
+                  type: 'success',
+                  message: `✅ ${total} proxies carregados com sucesso!`
+                });
+              }
+            } catch (error) {
+              console.error(`[${moduleName}] ERRO:`, error);
+              const total = moduleChecker.proxies?.length || 0;
+              if (moduleWindow && !moduleWindow.isDestroyed()) {
+                moduleWindow.webContents.send('proxy-loading-progress', { count: total });
+                moduleWindow.webContents.send('proxy-loading-complete', { total });
+                moduleWindow.webContents.send('log-message', {
+                  type: 'error',
+                  message: `❌ Erro: ${error.message}`
+                });
+              }
+            }
+          }
+          
         }
       });
       
@@ -429,16 +785,22 @@ ipcMain.handle('start-checking', async (event, config) => {
     }
   }
   
-  if (activeModules[moduleName] && activeModules[moduleName].isRunning) {
+  // Verifica se o módulo existe
+  if (!activeModules[moduleName]) {
+    return { success: false, message: `Módulo ${moduleName} não encontrado. Feche e abra a janela novamente.` };
+  }
+  
+  // Verifica se já está rodando
+  if (activeModules[moduleName].isRunning) {
     return { success: false, message: 'Verificação já está em execução' };
   }
   
-  // Marca o módulo como rodando
-  if (activeModules[moduleName]) {
-    activeModules[moduleName].isRunning = true;
-  }
+  // Marca o módulo como rodando ANTES de fazer qualquer coisa
+  activeModules[moduleName].isRunning = true;
   
-  isRunning = true;
+  // Atualiza isRunning global baseado em se há algum módulo rodando
+  const hasRunningModules = Object.values(activeModules).some(m => m.isRunning);
+  isRunning = hasRunningModules;
   
   // Inicializa estatísticas separadas para o módulo
   if (!sessionStats[moduleName]) {
@@ -471,6 +833,11 @@ ipcMain.handle('start-checking', async (event, config) => {
     }
   }
   
+  // Reseta rate limiter ao iniciar nova verificação (evita bloqueios de execuções anteriores)
+  if (checkers[moduleName] && checkers[moduleName].rateLimiter) {
+    checkers[moduleName].rateLimiter.reset();
+  }
+  
   // Atualiza o menu de módulos ANTES de iniciar (para mostrar aura verde imediatamente)
   updateModuleSelectorStatus();
   
@@ -479,11 +846,17 @@ ipcMain.handle('start-checking', async (event, config) => {
     updateModuleSelectorStatus();
   }, 50);
   
-  // Inicia verificação contínua (não await para não bloquear)
-  // Usa setTimeout para garantir que o status seja atualizado primeiro
+  // Verifica se já existe um intervalo rodando para este módulo (evita múltiplas instâncias)
+  if (sessionStats[moduleName] && sessionStats[moduleName].intervalId) {
+    clearTimeout(sessionStats[moduleName].intervalId);
+    sessionStats[moduleName].intervalId = null;
+  }
+  
+  // Inicia verificação contínua ESPECÍFICA PARA ESTE MÓDULO (não await para não bloquear)
+  // IMPORTANTE: Cada módulo roda sua própria instância de startContinuousChecking em paralelo
   setTimeout(() => {
-    startContinuousChecking(config).catch(err => {
-      console.error('[start-checking] Erro ao iniciar verificação contínua:', err);
+    startContinuousChecking(config, moduleName).catch(err => {
+      console.error(`[${moduleName.toUpperCase()}] Erro ao iniciar:`, err.message);
       if (activeModules[moduleName]) {
         activeModules[moduleName].isRunning = false;
         activeModules[moduleName].isChecking = false;
@@ -588,7 +961,7 @@ ipcMain.handle('open-results-folder', async () => {
 });
 
 ipcMain.handle('generate-test-cpf', async () => {
-  return CPFGenerator.generate();
+  return generateCPF();
 });
 
 ipcMain.handle('test-single-cpf', async (event, cpf) => {
@@ -621,19 +994,60 @@ ipcMain.handle('test-single-cpf', async (event, cpf) => {
         delay: 2000,
         timeout: 15000
       });
+    } else if (moduleName === 'telesena') {
+      checkers[moduleName] = new TelesenaChecker({
+        delay: 2000,
+        timeout: 15000
+      });
     }
   }
   
   const checker = checkers[moduleName];
   
   try {
-    const result = await checker.checkCPF(cpf);
+    // Cria callback de status para atualizações em tempo real (especialmente para Saúde)
+    let currentProxy = null;
+    const statusCallback = (status, cpf, extra = null, proxy = null) => {
+      // Atualiza proxy atual se fornecido
+      if (proxy) {
+        currentProxy = proxy;
+      }
+      
+      if (moduleWindow && !moduleWindow.isDestroyed()) {
+        let statusText = 'Testando CPF específico...';
+        if (status === 'buscando_email') {
+          statusText = 'Buscando email e telefone no WorkBuscas...';
+        } else if (status === 'dados_insuficientes') {
+          statusText = 'Dados insuficientes no WorkBuscas';
+        } else if (status === 'testando') {
+          statusText = 'Testando na API do Saúde Diária...';
+        } else if (status === 'testando_email') {
+          statusText = `Testando email ${extra}...`;
+        } else if (status === 'retry') {
+          statusText = `Tentando novamente (tentativa ${extra})...`;
+        }
+        
+        moduleWindow.webContents.send('cpf-checking', { 
+          cpf, 
+          count: 1,
+          statusText: statusText,
+          proxy: currentProxy || proxy || 'N/A'
+        });
+      }
+    };
     
-    // Envia resultado para interface
+    // Chama checkCPF com statusCallback (para módulos que suportam, como Saúde)
+    const result = moduleName === 'saude' 
+      ? await checker.checkCPF(cpf, false, statusCallback)
+      : await checker.checkCPF(cpf);
+    
+    // Envia resultado inicial para interface
     if (moduleWindow && !moduleWindow.isDestroyed()) {
       moduleWindow.webContents.send('cpf-checking', { 
         cpf, 
-        count: 1 
+        count: 1,
+        statusText: 'Processando...',
+        proxy: result.proxy || 'N/A'
       });
     }
     
@@ -684,9 +1098,37 @@ ipcMain.handle('test-single-cpf', async (event, cpf) => {
       }
     }
     
-    // Código original para Gemeos e Saúde
+    // Código original para Gemeos, Saúde e Telesena
+    console.log('[MAIN] DEBUG - Resultado do teste:', JSON.stringify(result, null, 2));
+    console.log('[MAIN] DEBUG - result.success:', result.success);
+    console.log('[MAIN] DEBUG - result.interpretation:', result.interpretation);
+    console.log('[MAIN] DEBUG - moduleWindow existe?', !!moduleWindow);
+    console.log('[MAIN] DEBUG - moduleWindow.isDestroyed?', moduleWindow ? moduleWindow.isDestroyed() : 'N/A');
+    
     if (result.success) {
       const status = result.interpretation === 'registered' ? 'registered' : 'not_registered';
+      console.log('[MAIN] DEBUG - Status calculado:', status);
+      
+      // IMPORTANTE: Atualiza estatísticas do módulo para teste específico também contar
+      if (!sessionStats[moduleName]) {
+        sessionStats[moduleName] = {
+          totalVerified: 0,
+          validFound: 0,
+          errors: 0,
+          startTime: null,
+          intervalId: null
+        };
+      }
+      const moduleStats = sessionStats[moduleName];
+      
+      // Incrementa total de verificados
+      moduleStats.totalVerified++;
+      
+      // Se registrado, incrementa válidos
+      if (status === 'registered') {
+        moduleStats.validFound++;
+      }
+      
       if (result.proxy && result.proxy !== 'Sem Proxy') {
         if (moduleWindow && !moduleWindow.isDestroyed()) {
           moduleWindow.webContents.send('proxy-info', {
@@ -707,6 +1149,7 @@ ipcMain.handle('test-single-cpf', async (event, cpf) => {
           email: result.user.email || undefined,
           phone: result.user.telefone || result.user.phone
         };
+        console.log('[MAIN] DEBUG - userData extraído:', userData);
       }
       
       if (result.products && result.products.success && Array.isArray(result.products.data)) {
@@ -714,31 +1157,65 @@ ipcMain.handle('test-single-cpf', async (event, cpf) => {
           id: p?.rifa?.id || p?.id || 'N/A',
           title: p?.rifa?.title || p?.titulo || p?.title || 'Compra'
         }));
+        console.log('[MAIN] DEBUG - products extraídos:', products.length, 'produtos');
       }
       
       if (status === 'registered') {
+        console.log('[MAIN] DEBUG - Salvando CPF válido...');
         await saveSingleValidCPF(cpf, result, true, moduleName);
       }
       
+      const resultData = {
+        cpf,
+        status,
+        message,
+        userData,
+        products,
+        proxy: result.proxy,
+        workbuscas: result.workbuscas || null,
+        emailMascarado: result.emailMascarado || null,
+        finalTelefone: result.finalTelefone || null
+      };
+      
+      console.log('[MAIN] DEBUG - Enviando cpf-result com dados:', JSON.stringify(resultData, null, 2));
+      
       if (moduleWindow && !moduleWindow.isDestroyed()) {
-        moduleWindow.webContents.send('cpf-result', {
-          cpf,
-          status,
-          message,
-          userData,
-          products,
-          proxy: result.proxy,
-          workbuscas: result.workbuscas || null
-        });
+        moduleWindow.webContents.send('cpf-result', resultData);
+        console.log('[MAIN] DEBUG - ✅ cpf-result enviado para a interface');
+      } else {
+        console.log('[MAIN] DEBUG - ❌ Não foi possível enviar cpf-result - janela não disponível');
       }
     } else {
+      console.log('[MAIN] DEBUG - Resultado não teve sucesso, enviando erro');
+      
+      // IMPORTANTE: Atualiza estatísticas mesmo em caso de erro (conta como verificado)
+      if (!sessionStats[moduleName]) {
+        sessionStats[moduleName] = {
+          totalVerified: 0,
+          validFound: 0,
+          errors: 0,
+          startTime: null,
+          intervalId: null
+        };
+      }
+      const moduleStats = sessionStats[moduleName];
+      moduleStats.totalVerified++; // Conta como verificado mesmo com erro
+      if (!moduleStats.errors) moduleStats.errors = 0;
+      moduleStats.errors++;
+      
+      const errorData = {
+        cpf,
+        status: 'error',
+        message: `Erro: ${result.error}`,
+        errorCode: result.status
+      };
+      console.log('[MAIN] DEBUG - Enviando cpf-result (erro):', JSON.stringify(errorData, null, 2));
+      
       if (moduleWindow && !moduleWindow.isDestroyed()) {
-        moduleWindow.webContents.send('cpf-result', {
-          cpf,
-          status: 'error',
-          message: `Erro: ${result.error}`,
-          errorCode: result.status
-        });
+        moduleWindow.webContents.send('cpf-result', errorData);
+        console.log('[MAIN] DEBUG - ✅ cpf-result (erro) enviado para a interface');
+      } else {
+        console.log('[MAIN] DEBUG - ❌ Não foi possível enviar cpf-result (erro) - janela não disponível');
       }
     }
     
@@ -756,53 +1233,30 @@ ipcMain.handle('test-single-cpf', async (event, cpf) => {
   }
 });
 
-async function startContinuousChecking(config) {
-  // Identifica qual módulo está rodando (para atualizar status)
-  let currentModuleName = 'gemeos';
-  for (const [key, module] of Object.entries(activeModules)) {
-    if (module.isRunning) {
-      currentModuleName = key;
-      break;
-    }
-  }
-  
+async function startContinuousChecking(config, moduleName) {
+  // Cada módulo roda independentemente - TODOS podem rodar simultaneamente
   // Verifica se o módulo específico está rodando
-  if (!activeModules[currentModuleName]) {
-      return;
-    }
-    
-    if (!activeModules[currentModuleName].isRunning) {
-      return;
-    }
-    
-    if (!isRunning) {
-    // Atualiza status no menu
-    if (activeModules[currentModuleName]) {
-      activeModules[currentModuleName].isRunning = false;
-      activeModules[currentModuleName].isChecking = false;
-      updateModuleSelectorStatus();
-    }
+  if (!activeModules[moduleName] || !activeModules[moduleName].isRunning) {
     return;
   }
   
   
   try {
-    // Pega a janela do módulo que está rodando primeiro
-    const currentModuleWindow = activeModules[currentModuleName]?.window;
+    // Pega a janela do módulo específico
+    const currentModuleWindow = activeModules[moduleName]?.window;
     if (!currentModuleWindow || currentModuleWindow.isDestroyed()) {
       // Se a janela foi fechada, para o processamento e atualiza status
-      if (activeModules[currentModuleName]) {
-        activeModules[currentModuleName].isRunning = false;
-        activeModules[currentModuleName].isChecking = false;
+      if (activeModules[moduleName]) {
+        activeModules[moduleName].isRunning = false;
+        activeModules[moduleName].isChecking = false;
         updateModuleSelectorStatus();
       }
       return;
     }
     
     // Pega o checker específico do módulo
-    const checker = checkers[currentModuleName];
+    const checker = checkers[moduleName];
     if (!checker) {
-      console.error(`[startContinuousChecking] Checker não encontrado para módulo: ${currentModuleName}`);
       return;
     }
     
@@ -821,32 +1275,80 @@ async function startContinuousChecking(config) {
         }
       };
       
-      await checker.loadProxies(progressCallback);
-      
-      if (currentModuleWindow && !currentModuleWindow.isDestroyed()) {
-        currentModuleWindow.webContents.send('proxy-loading-complete', { total: checker.proxies.length });
-        currentModuleWindow.webContents.send('log-message', {
-          type: 'success',
-          message: `✅ ${checker.proxies.length} proxies carregados com sucesso!`
-        });
+      try {
+        await checker.loadProxies(progressCallback);
+        
+        if (currentModuleWindow && !currentModuleWindow.isDestroyed()) {
+          currentModuleWindow.webContents.send('proxy-loading-complete', { total: checker.proxies.length });
+          currentModuleWindow.webContents.send('log-message', {
+            type: 'success',
+            message: `✅ ${checker.proxies.length} proxies carregados com sucesso!`
+          });
+        }
+      } catch (err) {
+        // Se der erro mas tiver algum proxy, continua mesmo assim
+        if (checker.proxies.length > 0) {
+          // Erro ao carregar proxies, mas já tem na memória
+          if (currentModuleWindow && !currentModuleWindow.isDestroyed()) {
+            currentModuleWindow.webContents.send('proxy-loading-complete', { total: checker.proxies.length });
+            currentModuleWindow.webContents.send('log-message', {
+              type: 'warning',
+              message: `⚠️ ${checker.proxies.length} proxies carregados (alguns erros durante carregamento)`
+            });
+          }
+        } else {
+          // Se não tem nenhum proxy, tenta cache
+          const cachePath = require('path').join(__dirname, `../.cache/proxies-${moduleName}.json`);
+          const fs = require('fs-extra');
+          if (fs.existsSync(cachePath)) {
+            try {
+              const cacheData = fs.readJsonSync(cachePath);
+              if (cacheData.proxies && cacheData.proxies.length > 0) {
+                checker.proxies = cacheData.proxies;
+                // Proxies carregados do cache
+                if (currentModuleWindow && !currentModuleWindow.isDestroyed()) {
+                  currentModuleWindow.webContents.send('proxy-loading-complete', { total: checker.proxies.length });
+                  currentModuleWindow.webContents.send('log-message', {
+                    type: 'success',
+                    message: `✅ ${checker.proxies.length} proxies carregados do cache!`
+                  });
+                }
+              }
+            } catch (e) {
+              console.error(`[${moduleName}] Erro ao carregar cache:`, e);
+            }
+          }
+          
+          // Se ainda não tem proxies, permite continuar sem proxies (pode funcionar sem)
+          if (checker.proxies.length === 0) {
+            // Nenhum proxy disponível, continuando sem proxy
+            if (currentModuleWindow && !currentModuleWindow.isDestroyed()) {
+              currentModuleWindow.webContents.send('proxy-loading-complete', { total: 0 });
+              currentModuleWindow.webContents.send('log-message', {
+                type: 'warning',
+                message: `⚠️ Nenhum proxy disponível. Continuando sem proxies...`
+              });
+            }
+          }
+        }
       }
     }
     
     // Gera lote de CPFs
     const batchSize = config.batchSize || 20;
-    const cpfs = CPFGenerator.generateMultiple(batchSize);
+    const cpfs = generateMultipleCPFs(batchSize);
     
     // Envia informações do lote para interface
     // Garante que as estatísticas do módulo existem
-    if (!sessionStats[currentModuleName]) {
-      sessionStats[currentModuleName] = {
+    if (!sessionStats[moduleName]) {
+      sessionStats[moduleName] = {
         totalVerified: 0,
         validFound: 0,
         startTime: new Date(),
         intervalId: null
       };
     }
-    const moduleStats = sessionStats[currentModuleName];
+    const moduleStats = sessionStats[moduleName];
     const batchNumber = Math.floor(moduleStats.totalVerified / batchSize) + 1;
     if (currentModuleWindow && !currentModuleWindow.isDestroyed()) {
       currentModuleWindow.webContents.send('batch-info', {
@@ -858,8 +1360,8 @@ async function startContinuousChecking(config) {
     }
     
     // Marca como "checking" quando inicia processamento do lote
-    if (activeModules[currentModuleName]) {
-      activeModules[currentModuleName].isChecking = true;
+    if (activeModules[moduleName]) {
+      activeModules[moduleName].isChecking = true;
       updateModuleSelectorStatus();
     }
     
@@ -912,8 +1414,8 @@ async function startContinuousChecking(config) {
     const results = await checker.checkMultipleCPFs(cpfs, statusCallback);
     
     // Remove status "checking" após processar (volta para aura verde)
-    if (activeModules[currentModuleName]) {
-      activeModules[currentModuleName].isChecking = false;
+    if (activeModules[moduleName]) {
+      activeModules[moduleName].isChecking = false;
       updateModuleSelectorStatus();
     }
     
@@ -924,20 +1426,23 @@ async function startContinuousChecking(config) {
     // moduleStats já foi declarado acima, apenas reutiliza
     
     results.forEach(result => {
-      moduleStats.totalVerified++;
-      
-      // Trata CPFs com status "skipped" (não encontrou email e telefone no WorkBuscas)
+      // Trata CPFs com status "skipped" (não encontrou email e telefone no WorkBuscas) PRIMEIRO
+      // Deve pular imediatamente antes de incrementar contadores
       if (result.interpretation === 'skipped') {
         if (currentModuleWindow && !currentModuleWindow.isDestroyed()) {
           currentModuleWindow.webContents.send('cpf-result', {
             cpf: result.cpf,
-            status: 'not_registered',
+            status: 'skipped',
             message: 'NÃO TESTADO (dados insuficientes)',
             proxy: result.proxy || 'N/A'
           });
         }
-        return; // Pula este CPF
+        // Não incrementa totalVerified nem processa mais nada - pula imediatamente
+        return; // Pula este CPF imediatamente
       }
+      
+      // Só incrementa contadores se não for 'skipped'
+      moduleStats.totalVerified++;
       
       if (result.success) {
         const status = result.interpretation === 'registered' ? 'registered' : 'not_registered';
@@ -978,11 +1483,13 @@ async function startContinuousChecking(config) {
             userData,
             products,
             proxy: result.proxy,
-            workbuscas: result.workbuscas || null
+            workbuscas: result.workbuscas || null,
+            emailMascarado: result.emailMascarado || null,
+            finalTelefone: result.finalTelefone || null
           });
         }
         if (status === 'registered') {
-          saveSingleValidCPF(result.cpf, result, false, currentModuleName);
+          saveSingleValidCPF(result.cpf, result, false, moduleName);
         }
       } else {
         errorsInBatch++;
@@ -1007,16 +1514,23 @@ async function startContinuousChecking(config) {
       });
     }
     
-    // Continua verificação após delay - verifica tanto isRunning global quanto do módulo
-    if (isRunning && activeModules[currentModuleName] && activeModules[currentModuleName].isRunning) {
+    // Continua verificação após delay - CADA MÓDULO RODA INDEPENDENTEMENTE
+    // Limpa intervalo anterior antes de criar novo (evita múltiplas instâncias)
+    if (moduleStats.intervalId) {
+      clearTimeout(moduleStats.intervalId);
+      moduleStats.intervalId = null;
+    }
+    
+    if (activeModules[moduleName] && activeModules[moduleName].isRunning) {
+      const delay = config.delay || 5000;
       moduleStats.intervalId = setTimeout(() => {
-        startContinuousChecking(config);
-      }, config.delay || 5000);
+        startContinuousChecking(config, moduleName);
+      }, delay);
     } else {
       // Se parou, atualiza status no menu
-      if (activeModules[currentModuleName]) {
-        activeModules[currentModuleName].isRunning = false;
-        activeModules[currentModuleName].isChecking = false;
+      if (activeModules[moduleName]) {
+        activeModules[moduleName].isRunning = false;
+        activeModules[moduleName].isChecking = false;
         updateModuleSelectorStatus();
       }
       // Limpa intervalo do módulo
@@ -1027,8 +1541,12 @@ async function startContinuousChecking(config) {
     }
     
   } catch (error) {
-    console.error('[startContinuousChecking] Erro:', error);
-    const errorModuleWindow = activeModules[currentModuleName]?.window;
+    // Log apenas erros críticos
+    if (error.message && !error.message.includes('rate limit')) {
+      console.error(`[${moduleName.toUpperCase()}] Erro:`, error.message);
+    }
+    
+    const errorModuleWindow = activeModules[moduleName]?.window;
     if (errorModuleWindow && !errorModuleWindow.isDestroyed()) {
       errorModuleWindow.webContents.send('cpf-result', {
         cpf: 'ERRO',
@@ -1038,27 +1556,30 @@ async function startContinuousChecking(config) {
     }
     
     // Reinicia após erro - verifica se ainda está rodando
-    // Garante que as estatísticas do módulo existem
-    if (!sessionStats[currentModuleName]) {
-      sessionStats[currentModuleName] = {
+    if (!sessionStats[moduleName]) {
+      sessionStats[moduleName] = {
         totalVerified: 0,
         validFound: 0,
         startTime: new Date(),
         intervalId: null
       };
     }
-    // Acessa moduleStats do escopo do objeto sessionStats (não precisa redeclarar)
-    const errorModuleStats = sessionStats[currentModuleName];
+    const errorModuleStats = sessionStats[moduleName];
     
-    if (isRunning && activeModules[currentModuleName] && activeModules[currentModuleName].isRunning) {
+    // Limpa intervalo anterior antes de criar novo
+    if (errorModuleStats.intervalId) {
+      clearTimeout(errorModuleStats.intervalId);
+      errorModuleStats.intervalId = null;
+    }
+    
+    if (activeModules[moduleName] && activeModules[moduleName].isRunning) {
       errorModuleStats.intervalId = setTimeout(() => {
-        startContinuousChecking(config);
+        startContinuousChecking(config, moduleName);
       }, 10000);
     } else {
-      // Se parou, atualiza status no menu
-      if (activeModules[currentModuleName]) {
-        activeModules[currentModuleName].isRunning = false;
-        activeModules[currentModuleName].isChecking = false;
+      if (activeModules[moduleName]) {
+        activeModules[moduleName].isRunning = false;
+        activeModules[moduleName].isChecking = false;
         updateModuleSelectorStatus();
       }
     }
@@ -1111,9 +1632,9 @@ async function saveValidCPF(result, moduleName = 'gemeos') {
   }
 
   // Dados complementares da API WorkBuscas
-  console.log(`[DEBUG saveValidCPF] Verificando workbuscas para CPF ${result.cpf}:`, !!result.workbuscas);
+  // Verificando workbuscas para CPF
   if (result.workbuscas) {
-    console.log(`[DEBUG saveValidCPF] WorkBuscas data recebido:`, JSON.stringify(result.workbuscas, null, 2));
+    // WorkBuscas data recebido
     txtContent += `📊 DADOS COMPLEMENTARES (WorkBuscas):\n`;
     // Salva todos os telefones
     if (result.workbuscas.telefones && Array.isArray(result.workbuscas.telefones) && result.workbuscas.telefones.length > 0) {
@@ -1200,7 +1721,14 @@ async function saveSingleValidCPF(cpf, result, isManualTest = false, moduleName 
   
   // Criar nome do arquivo baseado no nome da pessoa
   let personName = 'Desconhecido';
-  if ((result.user && (result.user.nome || result.user.name)) || (result.data && result.data.user && result.data.user.name)) {
+  
+  // Para Telesena, tenta pegar o nome do WorkBuscas primeiro
+  if (moduleName === 'telesena' && result.workbuscas && result.workbuscas.nome) {
+    personName = result.workbuscas.nome
+      .replace(/[<>:"/\\|?*]/g, '') // Remover caracteres inválidos
+      .replace(/\s+/g, '_') // Substituir espaços por underscore
+      .substring(0, 50); // Limitar tamanho
+  } else if ((result.user && (result.user.nome || result.user.name)) || (result.data && result.data.user && result.data.user.name)) {
     const rawName = result.user ? (result.user.nome || result.user.name) : result.data.user.name;
     // Limpar nome para usar como nome de arquivo
     personName = rawName
@@ -1219,7 +1747,9 @@ async function saveSingleValidCPF(cpf, result, isManualTest = false, moduleName 
     `teste-${personName}-${cpf}.txt` : 
     `validado-${personName}-${cpf}.txt`);
   
-  const moduleTitle = moduleName === 'gemeos' ? 'Gemeos Brasil' : 'Saúde Diária';
+  const moduleTitle = moduleName === 'gemeos' ? 'Gemeos Brasil' : 
+                     moduleName === 'saude' ? 'Saúde Diária' :
+                     moduleName === 'telesena' ? 'Telesena' : 'Sistema';
   
   let txtContent = '';
   if (isManualTest) {
@@ -1227,17 +1757,90 @@ async function saveSingleValidCPF(cpf, result, isManualTest = false, moduleName 
     txtContent += '='.repeat(55) + '\n\n';
     txtContent += `📅 Data/Hora: ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}\n`;
     txtContent += `🔢 CPF: ${cpf}\n`;
-    txtContent += `✅ Status: CADASTRADO\n`;
-    txtContent += `🧪 Tipo: TESTE MANUAL\n\n`;
+    txtContent += `✅ Status: CADASTRADO\n\n`;
   } else {
     txtContent += `🔍 CENTRAL DO ARRANCA - CPF VÁLIDO ENCONTRADO (${moduleTitle})\n`;
     txtContent += '='.repeat(55) + '\n\n';
     txtContent += `📅 Data/Hora: ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}\n`;
     txtContent += `🔢 CPF: ${cpf}\n`;
-    txtContent += `✅ Status: CADASTRADO\n`;
-    txtContent += `🧪 Tipo: VERIFICAÇÃO AUTOMÁTICA\n\n`;
+    txtContent += `✅ Status: CADASTRADO\n\n`;
   }
   
+  // Dados específicos do Telesena
+  if (moduleName === 'telesena') {
+    if (result.emailMascarado) {
+      txtContent += `📧 Email (mascarado): ${result.emailMascarado}\n`;
+    }
+    if (result.finalTelefone) {
+      txtContent += `📱 Final do Telefone: ${result.finalTelefone}\n`;
+    }
+    txtContent += `\n`;
+    
+    // Dados complementares da API WorkBuscas para Telesena
+    if (result.workbuscas) {
+      txtContent += `📊 DADOS COMPLEMENTARES (WorkBuscas):\n`;
+      
+      if (result.workbuscas.nome) {
+        txtContent += `   📛 Nome Completo: ${result.workbuscas.nome}\n`;
+      }
+      
+      if (result.workbuscas.nomeMae) {
+        txtContent += `   👩 Nome da Mãe: ${result.workbuscas.nomeMae}\n`;
+      }
+      
+      if (result.workbuscas.dataNascimento) {
+        txtContent += `   📅 Data de Nascimento: ${result.workbuscas.dataNascimento}\n`;
+      }
+      
+      // Telefones (todos os telefones disponíveis)
+      if (result.workbuscas.telefones && Array.isArray(result.workbuscas.telefones) && result.workbuscas.telefones.length > 0) {
+        txtContent += `   📱 Telefones (${result.workbuscas.telefones.length}):\n`;
+        result.workbuscas.telefones.forEach((tel, telIndex) => {
+          let telInfo = `      ${telIndex + 1}. ${tel.numero}`;
+          if (tel.operadora && tel.operadora !== 'Não informado') {
+            telInfo += ` (${tel.operadora})`;
+          }
+          if (tel.tipo) {
+            telInfo += ` - ${tel.tipo}`;
+          }
+          if (tel.whatsapp !== null && tel.whatsapp !== undefined) {
+            telInfo += tel.whatsapp ? ` ✓ WhatsApp` : '';
+          }
+          txtContent += `${telInfo}\n`;
+        });
+      } else if (result.workbuscas.telefone) {
+        txtContent += `   📱 Telefone: ${result.workbuscas.telefone}\n`;
+      }
+      
+      if (result.workbuscas.email) {
+        txtContent += `   📧 Email: ${result.workbuscas.email}\n`;
+      }
+      
+      if (result.workbuscas.renda) {
+        txtContent += `   💰 Renda: R$ ${result.workbuscas.renda}\n`;
+      }
+      
+      if (result.workbuscas.score) {
+        txtContent += `   📈 Score CSB: ${result.workbuscas.score}\n`;
+      }
+      
+      if (result.workbuscas.rg) {
+        let rgInfo = `   🆔 RG: ${result.workbuscas.rg}`;
+        if (result.workbuscas.rgOrgaoEmissor) {
+          rgInfo += ` - ${result.workbuscas.rgOrgaoEmissor}`;
+        }
+        if (result.workbuscas.rgUfEmissao) {
+          rgInfo += ` (${result.workbuscas.rgUfEmissao})`;
+        }
+        txtContent += `${rgInfo}\n`;
+        if (result.workbuscas.rgDataEmissao) {
+          txtContent += `      📅 Data de Emissão do RG: ${result.workbuscas.rgDataEmissao}\n`;
+        }
+      }
+      
+      txtContent += `\n`;
+    }
+  } else {
     const userBlock2 = result.user || (result.data && result.data.user) || null;
     if (userBlock2) {
       const nome2 = userBlock2.nome || userBlock2.name || 'Desconhecido';
@@ -1250,11 +1853,12 @@ async function saveSingleValidCPF(cpf, result, isManualTest = false, moduleName 
     if (phone2) txtContent += `   📱 Telefone: ${phone2}\n`;
     txtContent += `\n`;
   }
+}
 
-  // Dados complementares da API WorkBuscas
-  console.log(`[DEBUG saveSingleValidCPF] Verificando workbuscas para CPF ${cpf}:`, !!result.workbuscas);
-  if (result.workbuscas) {
-    console.log(`[DEBUG saveSingleValidCPF] WorkBuscas data recebido:`, JSON.stringify(result.workbuscas, null, 2));
+  // Dados complementares da API WorkBuscas (apenas para módulos que não têm tratamento específico)
+  // Telesena já tem seu próprio bloco acima, então não entra aqui
+  if (result.workbuscas && moduleName !== 'telesena') {
+    // WorkBuscas data recebido
     txtContent += `📊 DADOS COMPLEMENTARES (WorkBuscas):\n`;
     // Salva todos os telefones
     if (result.workbuscas.telefones && Array.isArray(result.workbuscas.telefones) && result.workbuscas.telefones.length > 0) {
@@ -1339,3 +1943,4 @@ async function saveSingleValidCPF(cpf, result, isManualTest = false, moduleName 
     });
   }
 }
+
